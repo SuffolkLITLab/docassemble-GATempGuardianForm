@@ -91,15 +91,15 @@ code: |
 ---
 
 objects:
-  - users: ALPeopleList.using(auto_gather=False, maximum_number=2)
+  - users: ALPeopleList.using(auto_gather=False)
   - attorneys: ALPeopleList.using(auto_gather=False)
   - children: ALPeopleList.using(auto_gather=False)
   - fathers: ALPeopleList.using(auto_gather=False)
   - mothers: ALPeopleList.using(auto_gather=False)
-  - other_parties: ALIndividual
+  - other_parties: ALPeopleList.using(auto_gather=False)
 ---
 sections:
-  - petitioners_and_court: Petitioners & Court Info
+  - petitioners: Petitioners 
   - parties: Parties (Child, Parents, Attorneys)
   - case_details: Case & Guardianship Details
   - sign_and_file: Signatures & Filing
@@ -116,73 +116,64 @@ mandatory: True
 code: |
   al_intro_screen
   gpcsfwithfields_1_intro
-  user_role = "plaintiff"
-  user_ask_role = "plaintiff"
-  nav.set_section('case_details')
-
+  nav.set_section('petitioners')
   user_information
+  nav.set_section('parties')
   other_party_information
   minor_information
   mother_information
   father_information
+  set_progress(50)
+  nav.set_section('case_details')
   guardianship_details
   additional_data
   attorney_information
   case_information
-
   set_progress(75)
-
   if not defined('people_lists_built'):
     users.appendObject()
     children.appendObject()
     mothers.appendObject()
     fathers.appendObject()
     attorneys.appendObject()
-
+  
     users[0].name = users1_name_full
     users[0].address.address = users1_address
     users[0].address.county = users1_address_county
     users[0].phone_number = users1_phone
 
-  if defined('users2_name_full') and users2_name_full:
-    users.appendObject()
-    users[1].name = users2_name_full
-    users[1].address.address = users2_address
-    users[1].phone_number = users2_phone
-
+    if other_parties1_name_full:
+      other_parties.appendObject()
+      other_parties[0].name = other_parties1_name_full
+      other_parties[0].address.address = other_parties1_address
+      other_parties[0].phone_number = other_parties1_phone
+  
     children[0].name = children1_name_full
     children[0].birthdate = children1_birthdate_date
     children[0].address.address = children1_address
     children[0].address.county = children1_address_county
     children[0].age = children1_age
-
     mothers[0].name = mothers1_name_full
     mothers[0].address.address = mothers1_address
-
     fathers[0].name = fathers1_name_full
     fathers[0].address.address = fathers1_address
-
     attorneys[0].name = attorneys_name
     attorneys[0].address.address = attorneys_address
     attorneys[0].phone_number = attorneys_phone_number
-
+   
     users.gathered = True
-    users.there_is_another = False
-    users.target_number = users.number_gathered()
     children.gathered = True
     mothers.gathered = True
     fathers.gathered = True
     attorneys.gathered = True
+    other_parties.gathered = True
     people_lists_built = True
- 
-    set_progress(88)
-    signature_date
-    store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
-    gpcsfwithfields_1_preview_question
-    log("USERS BEFORE SIGNATURE FLOW: " + str(len(users)))
-    basic_questions_signature_flow
-    set_progress(100)
-    gpcsfwithfields_1_download
+  set_progress(88)
+  signature_date
+  store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
+  gpcsfwithfields_1_preview_question
+  set_progress(100)
+  gpcsfwithfields_1_download
 ---
 id: GPCSF with fields 1 intro
 question: Petition For Temporary Letters of Guardianship of Minor
@@ -385,8 +376,13 @@ code: |
     'users[0].signature',
     'children[0].signature',
     'mothers[0].signature',
-    'fathers[0].signature'
+    'fathers[0].signature',
+    'other_parties[0].signature'
   ]
+
+  if other_parties1_name_full:
+    signature_fields.append('other_parties[0].signature')
+
 ---
 code: |
   # This is a placeholder for the addresses that will be searched
@@ -568,7 +564,7 @@ event: gpcsfwithfields_1_download
 question: |
   All done
 subquestion: |
-  Thank you ${users}. Your form is ready to download and deliver.
+  Thank you ${users[0].name}. Your form is ready to download and deliver.
   
   Use the options on this page to view, download and send your form. Use the
   "Edit answers" button to fix any mistakes.
@@ -696,19 +692,19 @@ attachment:
       - "users1_signature__2": ${ users[0].signature_if_final(i) }
       - "users1_signature__1": ${ users[0].signature_if_final(i) }
       - "users1_signature": ${ users[0].signature_if_final(i) }
-      - "users2_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
-      - "users2_signature__1": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
-      - "users2_signature__2": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
-      - "users2_name_full": ${ users[1] if len(users) > 1 else '' }
-      - "users2_name_full__1": ${ users[1] if len(users) > 1 else '' }
-      - "users2_name_full__2": ${ users[1] if len(users) > 1 else '' }
-      - "users2_name_full__3": ${ users[1] if len(users) > 1 else '' }
+      - "other_parties1_signature": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
+      - "other_parties1_signature__1": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
+      - "other_parties1_signature__2": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
+      - "other_parties1_name_full": ${ other_parties1_name_full }
+      - "other_parties1_name_full__1": ${ other_parties1_name_full }
+      - "other_parties1_name_full__2": ${ other_parties1_name_full }
+      - "other_parties1_name_full__3": ${ other_parties1_name_full }
       - "users1_address_line_one": ${ users[0].address.line_one() }
-      - "users2_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
+      - "other_parties1_address_line_one": ${ other_parties[0].address.line_one() if len(other_parties) > 0 else '' }
       - "users1_address_line_two": ${ users[0].address.line_two() }
-      - "users2_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
+      - "other_parties1_address_line_two": ${ other_parties[0].address.line_two() if len(other_parties) > 0 else '' }
       - "users1_phone_number": ${ users[0].phone_number }
-      - "users2_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
+      - "other_parties1_phone_number": ${ other_parties[0].phone_number if len(other_parties) > 0 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
       - "attorneys_address": ${ attorneys_address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
