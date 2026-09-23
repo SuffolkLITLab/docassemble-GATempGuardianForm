@@ -1,0 +1,719 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALAnyState:any_state.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+metadata:
+  title: >-
+    GPCSF-with-fields (1)
+  short title: >-
+    GPCSF-with-fields (1)
+  description: |-
+    This form is used to request Temporary Letters of Guardianship for a minor. It outlines the necessary steps and requirements to ensure the child's welfare.
+  can_I_use_this_form: |
+    You can use this form if you need to temporarily care for a minor and have the necessary legal relationship with them. Make sure to notify the parents of the minor as required.
+  before_you_start: |
+    ### Before you get started
+    - Gather all necessary information about the minor and their parents.
+    - Ensure you have the required documents, like the minor's birth certificate.
+
+    ### When you are finished
+    - Submit the completed petition to the appropriate Probate Court.
+    - Ensure that all parties are notified as required by law.
+  when_you_are_finished: |
+    After submitting your petition, you will need to wait for the court's decision. Keep track of any hearings or additional requirements set by the court.
+  efiling_enabled: False
+  integrated_efiling: False
+  integrated_email_filing: False
+  requires_notarization: False
+  unlisted: False
+  landing_page_url: >-
+    https://courtformsonline.org/
+  maturity: production
+  estimated_completion_minutes: ""
+  estimated_completion_delta: ""
+  LIST_topics:
+    - "CO-00-00-00-00"
+  tags:
+    - "CO-00-00-00-00"
+  authors:
+    - Court Forms Online
+  original_form: []
+  original_form_published_on: ""
+  allowed_courts: []
+  typical_role: "plaintiff"
+  al_weaver_version: "2.3.1"
+  generated_on: "2026-09-18"
+  languages:
+    - en
+  jurisdiction: "NAM-US-US+MA"
+  review_date: 2026-09-18
+  form_titles:
+    - GPCSF-with-fields (1)
+  form_numbers: []
+  update_notes: ""
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "GA"
+---
+code: |
+  github_repo_name = 'docassemble-Gpcsfwithfields1'
+---
+template: interview_short_title
+content: |
+  File a Petition for Temporary Guardianship
+---
+code: |
+  al_form_type = "other"
+---
+id: alweaver assemblyline settings
+initial: True
+code: |
+  # These exact-name variables drive the reusable next-steps DOCX shell and
+  # are editable in Weaver's AssemblyLine settings panel.
+  al_next_steps_enabled = True
+  al_next_steps_intro_prompt = 'File a Petition for Temporary Guardianship'
+  al_next_steps_title = 'GPCSF-with-fields (1)'
+  al_next_steps_document_title = 'Petition'
+  al_next_steps_document_purpose = 'Application'
+  al_next_steps_help_organization = 'Georgia Probate Court'
+  al_next_steps_help_url = 'https://www.gaprobate.gov'
+  al_next_steps_generate_qr_code = False
+  al_next_steps_what_happens_next = "After submitting your petition, you will need to wait for the court's decision. Keep track of any hearings or additional requirements set by the court."
+  al_next_steps_what_can_decision_maker_do = 'The decision maker (court) can approve or deny your request for temporary guardianship. If approved, you will receive the necessary court orders.'
+  al_next_steps_what_happens_if_i_win = 'If your petition is granted, you will be appointed as the temporary guardian of the minor. This allows you to make decisions regarding their care and welfare.'
+---
+
+objects:
+  - users: ALPeopleList.using(auto_gather=False, maximum_number=2)
+  - attorneys: ALPeopleList.using(auto_gather=False)
+  - children: ALPeopleList.using(auto_gather=False)
+  - fathers: ALPeopleList.using(auto_gather=False)
+  - mothers: ALPeopleList.using(auto_gather=False)
+  - other_parties: ALIndividual
+---
+sections:
+  - petitioners_and_court: Petitioners & Court Info
+  - parties: Parties (Child, Parents, Attorneys)
+  - case_details: Case & Guardianship Details
+  - sign_and_file: Signatures & Filing
+  - review_gpcsfwithfields_1: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form.
+  The interview uses the custom question screens below instead of
+  ALPeopleList.gather(), so AssemblyLine's generic person questions are not
+  triggered a second time.
+id: interview_order_gpcsfwithfields_1
+mandatory: True
+code: |
+  al_intro_screen
+  gpcsfwithfields_1_intro
+  user_role = "plaintiff"
+  user_ask_role = "plaintiff"
+  nav.set_section('case_details')
+
+  user_information
+  other_party_information
+  minor_information
+  mother_information
+  father_information
+  guardianship_details
+  additional_data
+  attorney_information
+  case_information
+
+  set_progress(75)
+
+  if not defined('people_lists_built'):
+    users.appendObject()
+    children.appendObject()
+    mothers.appendObject()
+    fathers.appendObject()
+    attorneys.appendObject()
+
+    users[0].name = users1_name_full
+    users[0].address.address = users1_address
+    users[0].address.county = users1_address_county
+    users[0].phone_number = users1_phone
+
+  if defined('users2_name_full') and users2_name_full:
+    users.appendObject()
+    users[1].name = users2_name_full
+    users[1].address.address = users2_address
+    users[1].phone_number = users2_phone
+
+    children[0].name = children1_name_full
+    children[0].birthdate = children1_birthdate_date
+    children[0].address.address = children1_address
+    children[0].address.county = children1_address_county
+    children[0].age = children1_age
+
+    mothers[0].name = mothers1_name_full
+    mothers[0].address.address = mothers1_address
+
+    fathers[0].name = fathers1_name_full
+    fathers[0].address.address = fathers1_address
+
+    attorneys[0].name = attorneys_name
+    attorneys[0].address.address = attorneys_address
+    attorneys[0].phone_number = attorneys_phone_number
+
+    users.gathered = True
+    users.there_is_another = False
+    users.target_number = users.number_gathered()
+    children.gathered = True
+    mothers.gathered = True
+    fathers.gathered = True
+    attorneys.gathered = True
+    people_lists_built = True
+ 
+    set_progress(88)
+    signature_date
+    store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
+    gpcsfwithfields_1_preview_question
+    log("USERS BEFORE SIGNATURE FLOW: " + str(len(users)))
+    basic_questions_signature_flow
+    set_progress(100)
+    gpcsfwithfields_1_download
+---
+id: GPCSF with fields 1 intro
+question: Petition For Temporary Letters of Guardianship of Minor
+subquestion: |
+  **In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
+  
+  ### To complete the form:
+  - Gather all necessary information about the minor and their parents.
+  - Ensure you have the required documents, like the minor's birth certificate.
+  
+  ### When you are finished
+  - Submit the completed petition to the appropriate Probate Court.
+  - Ensure that all parties are notified as required by law.
+  
+  You can use this form if you need to temporarily care for a minor and have the necessary legal relationship with them. Make sure to notify the parents of the minor as required.
+continue button field: gpcsfwithfields_1_intro
+---
+id: user_information
+question: Temporary Guardian Information
+subquestion: "Provide details about the petitioner seeking to be the appointed temporary guardian. If there is more than one petitioner, please provide the second petitioner's information on the next page."
+fields:
+  - Full Name: users1_name_full
+  - "Complete Address (Street, City, County, State, Zip)": users1_address
+  - County: users1_address_county
+  - Phone number: users1_phone
+  - "Petitioner's relationship to Minor": users1_relationship_to_minor
+continue button field: user_information
+---
+id: other_party_information
+question: Second Temporary Guardian (optional)
+subquestion: "If there is a second petitioner seeking to be the temporary guardian of the minor, please include their information here. If not, skip this page."
+fields:
+  - label: Full Name
+    field: other_parties1_name_full
+    required: False
+  - label: Address
+    field: other_parties1_address
+    required: False
+  - label: Phone Number
+    field: other_parties1_phone
+    required: False
+continue button field: other_party_information
+---
+id: minor_information
+question: "Minor's Information"
+subquestion: "Provide details about the minor. If the Minor is 14 years of age or older at the time of filing, please include the \"Minor Selection Form\" with your filing."
+fields:
+  - "Minor's Full Name": children1_name_full
+  - "Minor's Date of Birth": children1_birthdate_date
+    datatype: BirthDate
+  - "Minor's Complete Address (Street, City, County, State, Zip)": children1_address
+  - "Georgia County where the Minor resides": children1_address_county
+  - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
+    datatype: yesnoradio
+  - "Minor's age at time of filing": children1_age
+    datatype: integer
+continue button field: minor_information
+---
+id: mother_information
+question: |
+  Mother's Information
+subquestion: |
+  Provide details about the Minor's mother.
+
+  In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
+fields:
+  - "Mother's full name": mothers1_name_full
+  - "Mother's address": mothers1_address
+  - label: "Full name of Mother's Spouse (if applicable)"
+    field: mothers1_spouse_name_full
+    required: False
+  - label: "Address of Mother's Spouse"
+    field: mothers1_spouse_address
+    required: False
+    input type: area
+  - label: Is the Mother deceased?
+    field: mothers1_deceased_yes
+    datatype: yesnoradio
+  - "Has the Mother signed a consent for the creation of this temporary guardianship?": mothers1_signed_consent_yes
+    datatype: yesnoradio
+  - "Is the Mother’s address known and listed above?": motherss1_address_listed_yes
+    datatype: yesnoradio
+  - "Have the Mother’s rights been terminated via Court Order?": mothers1_rights_terminated_yes
+    datatype: yesnoradio
+  - "Has the Mother lost custody via Court Order?": mother_lost_custody_yes
+    datatype: yesnoradio
+  - "Does the Mother have joint legal custody via Court Order?": mother_joint_custody_yes
+    datatype: yesnoradio
+  - "Does the Mother have sole legal custody via Court Order?": mother_sole_custody_yes
+    datatype: yesnoradio
+  - "Was the Mother married to the Father of the child during or after the conception of the Child?": mother_father_married_yes
+    datatype: yesnoradio
+  - "Was the Mother married to another during the conception, gestation or birth of the Child?": mother_other_married_yes
+    datatype: yesnoradio
+  - label: "If yes, please include that person's full name:"
+    field: mothers_spouse2_name_full
+    required: False
+continue button field: mother_information
+---
+id: father_information
+question: |
+  Father's Information
+subquestion: |
+  Provide details about the Minor's father.
+
+  In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
+fields:
+  - label: "Father's full name"
+    field: fathers1_name_full
+    input type: area
+  - "Father's address": fathers1_address
+  - "Is the Minor's Father deceased? ": father_deceased_yes
+    datatype: yesnoradio
+  - "Has the Father signed a consent for the creation of this temporary guardianship?": father_consent_yes
+    datatype: yesnoradio
+  - "Is the Father’s address known and listed above?": father_address_listed_yes
+    datatype: yesnoradio
+  - "Have the Father’s rights been terminated via Court Order?": fathers_rights_terminated_yes
+    datatype: yesnoradio
+  - "Has the Father lost custody via Court Order?": father_lost_custody_yes
+    datatype: yesnoradio
+  - "Does the Father have joint legal custody via Court Order?": father_joint_custody_yes
+    datatype: yesnoradio
+  - "Does the Father have sole legal custody via Court Order?": father_sole_custody_yes
+    datatype: yesnoradio
+continue button field: father_information
+---
+id: guardianship_details
+question: Temporary Guardianship Details
+subquestion: Explain the reason for seeking temporary guardianship.
+fields:
+  - label: Reason for guardianship
+    field: guardianship_reason
+    datatype: area
+    input type: area
+continue button field: guardianship_details
+---
+id: additional_data
+question: |
+  Additional Data
+subquestion: |
+  Provide any additional relevant information. Also, state here all pertinent facts that may govern the method of giving notice to any
+  party and that may determine whether or not a guardian ad litem should be appointed for any party.
+fields:
+  - label: "Additional information:"
+    field: Additional_data
+    datatype: area
+    required: False
+    input type: area
+continue button field: additional_data
+---
+id: attorney_information
+question: Attorney Information
+subquestion: "If known, please provide the attorney information for the petitioner seeking temporary guardianship. If unknown, skip this page."
+fields:
+  - label: "Attorney's Name"
+    field: attorneys_name
+    required: False
+  - label: "Attorney's address"
+    field: attorneys_address
+    required: False
+  - label: "Attorney's phone number"
+    field: attorneys_phone_number
+    required: False
+  - label: "Attorney's State Bar Number"
+    field: attorneys_bar_number
+    required: False
+continue button field: attorney_information
+---
+id: case_information
+question: Case Information
+subquestion: "Please provide the case details, if known. If unknown, skip this page."
+fields:
+  - label: Case Number or Docket Number
+    field: docket_number
+    required: False
+  - label: Trial Court County
+    field: trial_court_county
+    required: False
+continue button field: case_information
+---
+# Preview and review are kept separate from the custom interview questions.
+id: preview_gpcsfwithfields_1
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.
+
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Open the form preview in a new tab. Use the "Edit answers" button to edit your answers.
+
+  ${ action_button_html(url_action('review_gpcsfwithfields_1'), label=word('Edit answers'), color='info') }
+
+  Return to this interview tab to continue and sign your form.
+continue button field: gpcsfwithfields_1_preview_question
+---
+code: |
+  signature_fields = [
+    'users[0].signature',
+    'children[0].signature',
+    'mothers[0].signature',
+    'fathers[0].signature'
+  ]
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court. Edit if court venue is based on a
+  # different address than the user's
+  [user.address.address for user in users.complete_elements()]
+  addresses_to_search = [user.address for user in users.complete_elements()]
+---
+id: gpcsfwithfields_1_review_screen
+# The review screen is intentionally based on the custom variables above.
+event: review_gpcsfwithfields_1
+question: |
+  Review your answers
+review:
+  - Edit: users1_address
+    button: |
+      **User Information**
+
+      User name: ${ showifdef('users1_name_full') }
+
+      User address: ${ showifdef('users1_address') }
+
+      User phone: ${ showifdef('users1_phone') }
+
+      Relationship to minor: ${ showifdef('users1_relationship_to_minor') }
+  - Edit: children1_birthdate_date
+    button: |
+      **Minor's Information**
+
+      Minor name: ${ showifdef('children1_name_full') }
+
+      Child birthdate: ${ showifdef('children1_birthdate_date') }
+
+      Child address: ${ showifdef('children1_address') }
+
+      Child county: ${ showifdef('children1_address_county') }
+
+      Age at filing: ${ showifdef('children1_age') }
+  - Edit: mothers1_address
+    button: |
+      **Mother's Information**
+
+      Mother name: ${ showifdef('mothers1_name_full') }
+
+      Mother address: ${ showifdef('mothers1_address') }
+
+      Mother deceased: ${ word(yesno(mothers1_deceased_yes)) if defined('mothers1_deceased_yes') else '' }
+
+      Mother consent: ${ word(yesno(mothers1_signed_consent_yes)) if defined('mothers1_signed_consent_yes') else '' }
+  - Edit: fathers1_address
+    button: |
+      **Father's Information**
+
+      Father name: ${ showifdef('fathers1_name_full') }
+
+      Father address: ${ showifdef('fathers1_address') }
+
+      Father deceased: ${ word(yesno(father_deceased_yes)) if defined('father_deceased_yes') else '' }
+
+      Father consent: ${ word(yesno(father_consent_yes)) if defined('father_consent_yes') else '' }
+  - Edit: guardianship_reason
+    button: |
+      **Guardianship Details**
+
+      Reason for guardianship: ${ single_paragraph(guardianship_reason) if defined('guardianship_reason') else '' }
+  - Edit: Additional_data
+    button: |
+      **Additional Data**
+
+      Additional data provided: ${ single_paragraph(Additional_data) if defined('Additional_data') else '' }
+  - Edit: attorneys_address
+    button: |
+      **Attorney Information**
+
+      Attorney name: ${ showifdef('attorneys_name') }
+
+      Attorney address: ${ showifdef('attorneys_address') }
+
+      Attorney phone: ${ showifdef('attorneys_phone_number') }
+
+      Attorney bar number: ${ showifdef('attorneys_bar_number') }
+  - Edit: docket_number
+    button: |
+      **Case Information**
+
+      Docket number: ${ showifdef('docket_number') }
+
+      Trial court county: ${ showifdef('trial_court_county') }
+---
+id: edit_children
+continue button field: children.revisit
+question: |
+  Edit children
+subquestion: |
+  ${ children.table }
+
+  ${ children.add_action() }
+---
+table: children.table
+rows: children
+columns:
+  - Name: |
+      row_item.name_full() if defined("row_item.name.first") else ""
+  - Birthdate: |
+      row_item.birthdate if defined("row_item.birthdate") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.county") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+edit:
+  - name.first
+  - birthdate
+  - address.county
+confirm: True
+---
+id: edit_mothers
+continue button field: mothers.revisit
+question: |
+  Edit mothers
+subquestion: |
+  ${ mothers.table }
+
+  ${ mothers.add_action() }
+---
+table: mothers.table
+rows: mothers
+columns:
+  - Name: |
+      row_item.name_full() if defined("row_item.name.first") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+edit:
+  - name.first
+confirm: True
+---
+id: edit_fathers
+continue button field: fathers.revisit
+question: |
+  Edit fathers
+subquestion: |
+  ${ fathers.table }
+
+  ${ fathers.add_action() }
+---
+table: fathers.table
+rows: fathers
+columns:
+  - Name: |
+      row_item.name_full() if defined("row_item.name.first") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+edit:
+  - name.first
+confirm: True
+---
+id: edit_attorneys
+continue button field: attorneys.revisit
+question: |
+  Edit attorneys
+subquestion: |
+  ${ attorneys.table }
+
+  ${ attorneys.add_action() }
+---
+table: attorneys.table
+rows: attorneys
+columns:
+  - Name: |
+      row_item.name_full() if defined("row_item.name.first") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+edit:
+  - name.first
+  - phone_number
+confirm: True
+---
+id: download_gpcsfwithfields_1
+event: gpcsfwithfields_1_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  Use the options on this page to view, download and send your form. Use the
+  "Edit answers" button to fix any mistakes.
+  
+  ${ action_button_html(url_action('review_gpcsfwithfields_1'), label=word('Edit answers'), color='info') }
+  
+  ${ al_user_bundle.download_list_html() }
+  
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+progress: 100
+---
+# ALDocument objects specify the metadata for each template
+objects:
+  - gpcsfwithfields_1_Post_interview_instructions: ALDocument.using(filename="gpcsfwithfields_1_next_steps.docx", enabled=al_next_steps_enabled, has_addendum=False)
+  - gpcsfwithfields_1_attachment: ALDocument.using(filename="gpcsfwithfields_1", enabled=True, has_addendum=False)
+---
+# Bundles group the ALDocuments into separate downloads, such as for court and for the user
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[gpcsfwithfields_1_Post_interview_instructions, gpcsfwithfields_1_attachment], filename="gpcsfwithfields_1", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[gpcsfwithfields_1_attachment], filename="gpcsfwithfields_1", enabled=True)
+---
+template: gpcsfwithfields_1_Post_interview_instructions.title
+content: |
+  Instructions
+---
+template: gpcsfwithfields_1_attachment.title
+content: |
+  GPCSF-with-fields (1)
+---
+template: al_user_bundle.title
+content: |
+  All forms to download for your records
+---
+template: al_court_bundle.title
+content: |
+  All forms to deliver to court
+---
+# Each attachment defines a key in an ALDocument. We use `i` as the placeholder here so the
+# same template is used for "preview" and "final" keys, and logic in the template checks
+# the value of `i` to show or hide the user's signature
+attachment:
+  name: Post-interview-Instructions
+  filename: gpcsfwithfields_1_next_steps
+  docx template file: gpcsfwithfields_1_next_steps.docx
+  variable name: gpcsfwithfields_1_Post_interview_instructions[i]
+  skip undefined: True
+  tagged pdf: True
+---
+attachment:
+  name: gpcsfwithfields 1
+  filename: gpcsfwithfields_1
+  variable name: gpcsfwithfields_1_attachment[i]
+  skip undefined: True
+  pdf template file: GPCSF-with-fields_1.pdf
+  fields:
+      - "trial_court_county": ${ trial_court_county }
+      - "trial_court_county__5": ${ trial_court_county }
+      - "trial_court_county__6": ${ trial_court_county }
+      - "trial_court_county__8": ${ trial_court_county }
+      - "trial_court_county__1": ${ trial_court_county }
+      - "trial_court_county__3": ${ trial_court_county }
+      - "trial_court_county__4": ${ trial_court_county }
+      - "trial_court_county__9": ${ trial_court_county }
+      - "trial_court_county__10": ${ trial_court_county }
+      - "trial_court_county__11": ${ trial_court_county }
+      - "trial_court_county__2": ${ trial_court_county }
+      - "trial_court_county__7": ${ trial_court_county }
+      - "trial_court_county__12": ${ trial_court_county }
+      - "trial_court_county__13": ${ trial_court_county }
+      - "children1_name_full": ${ children[0] }
+      - "children1_name_full__1": ${ children[0] }
+      - "children1_name_full__3": ${ children[0] }
+      - "children1_name_full__4": ${ children[0] }
+      - "children1_name_full__5": ${ children[0] }
+      - "children1_name_full__2": ${ children[0] }
+      - "children1_name_full__10": ${ children[0] }
+      - "children1_name_full__11": ${ children[0] }
+      - "children1_name_full__12": ${ children[0] }
+      - "children1_name_full__13": ${ children[0] }
+      - "children1_name_full__14": ${ children[0] }
+      - "children1_name_full__6": ${ children[0] }
+      - "children1_name_full__7": ${ children[0] }
+      - "children1_name_full__8": ${ children[0] }
+      - "docket_number": ${ docket_number }
+      - "docket_number__11": ${ docket_number }
+      - "docket_number__15": ${ docket_number }
+      - "docket_number__17": ${ docket_number }
+      - "docket_number__5": ${ docket_number }
+      - "docket_number__6": ${ docket_number }
+      - "docket_number__1": ${ docket_number }
+      - "docket_number__2": ${ docket_number }
+      - "docket_number__3": ${ docket_number }
+      - "docket_number__4": ${ docket_number }
+      - "docket_number__13": ${ docket_number }
+      - "docket_number__14": ${ docket_number }
+      - "users1_name_full": ${ users[0] }
+      - "users1_name_full__1": ${ users[0] }
+      - "users1_name_full__2": ${ users[0] }
+      - "users1_name_full__3": ${ users[0] }
+      - "users1_name_full__4": ${ users[0] }
+      - "users1_name_full__5": ${ users[0] }
+      - "users1_name_full__6": ${ users[0] }
+      - "users1_name_full__7": ${ users[0] }
+      - "users1_address_county": ${ users[0].address.county }
+      - "users1_address": ${ users1_address }
+      - "children1_address": ${ children1_address }
+      - "children1_address__1": ${ children1_address }
+      - "children1_age": ${ children[0].age_in_years() }
+      - "children1_birthdate_date": ${ children1_birthdate_date.format() }
+      - "users1_relationship_to_minor": ${ users1_relationship_to_minor }
+      - "mothers1_name_full": ${ mothers[0] }
+      - "mothers1_name_full__1": ${ mothers[0] }
+      - "mothers1_name_full__2": ${ mothers[0] }
+      - "mothers1_address": ${ mothers1_address }
+      - "mothers1_address__1": ${ mothers1_address }
+      - "mothers1_spouse_name_full": ${ mothers1_spouse_name_full }
+      - "mothers1_spouse_address": ${ mothers1_spouse_address }
+      - "fathers1_name_full": ${ fathers[0] }
+      - "fathers1_name_full__1": ${ fathers[0] }
+      - "fathers1_name_full__2": ${ fathers[0] }
+      - "fathers1_address": ${ fathers1_address }
+      - "fathers1_address__1": ${ fathers1_address }
+      - "guardianship_reason": ${ guardianship_reason }
+      - "Additional_data": ${ Additional_data }
+      - "users1_signature__2": ${ users[0].signature_if_final(i) }
+      - "users1_signature__1": ${ users[0].signature_if_final(i) }
+      - "users1_signature": ${ users[0].signature_if_final(i) }
+      - "users2_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+      - "users2_signature__1": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+      - "users2_signature__2": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+      - "users2_name_full": ${ users[1] if len(users) > 1 else '' }
+      - "users2_name_full__1": ${ users[1] if len(users) > 1 else '' }
+      - "users2_name_full__2": ${ users[1] if len(users) > 1 else '' }
+      - "users2_name_full__3": ${ users[1] if len(users) > 1 else '' }
+      - "users1_address_line_one": ${ users[0].address.line_one() }
+      - "users2_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
+      - "users1_address_line_two": ${ users[0].address.line_two() }
+      - "users2_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
+      - "users1_phone_number": ${ users[0].phone_number }
+      - "users2_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
+      - "attorneys_name_full": ${ attorneys[0] }
+      - "attorneys_address": ${ attorneys_address }
+      - "attorneys_phone_number": ${ attorneys[0].phone_number }
+      - "attorneys_bar_number": ${ attorneys_bar_number }
+      - "children1_address_county": ${ children[0].address.county }
+      - "children1_signature": ${ children[0].signature_if_final(i) }
+      - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
+      - "fathers1_signature": ${ fathers[0].signature_if_final(i) }

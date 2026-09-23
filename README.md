@@ -1,2 +1,3 @@
-# docassemble-GATempGuardianForm
-A docassemble project for GPCSFDraft1.
+# docassemble.GATempGuardianForm
+
+A docassemble extension.
