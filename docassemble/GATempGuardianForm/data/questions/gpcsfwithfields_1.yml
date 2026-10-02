@@ -70,7 +70,7 @@ content: |
   File a Petition for Temporary Guardianship
 ---
 code: |
-  al_form_type = "other"
+  al_form_type = "starts_case"
 ---
 id: alweaver assemblyline settings
 initial: True
@@ -96,7 +96,6 @@ objects:
   - children: ALPeopleList.using(auto_gather=False)
   - fathers: ALPeopleList.using(auto_gather=False)
   - mothers: ALPeopleList.using(auto_gather=False)
-  - other_parties: ALPeopleList.using(auto_gather=False)
 ---
 sections:
   - petitioners: Petitioners 
@@ -117,9 +116,14 @@ code: |
   al_intro_screen
   gpcsfwithfields_1_intro
   nav.set_section('petitioners')
+  users.appendObject()
+  i = 0
   user_information
   nav.set_section('parties')
-  other_party_information
+  second_guardian_yes_no
+  if has_second_guardian:
+    users.appendObject()
+    second_guardian_information
   minor_information
   mother_information
   father_information
@@ -131,49 +135,30 @@ code: |
   case_information
   set_progress(75)
   if not defined('people_lists_built'):
-    users.appendObject()
     children.appendObject()
     mothers.appendObject()
     fathers.appendObject()
     attorneys.appendObject()
-  
-    users[0].name = users1_name_full
-    users[0].address.address = users1_address
-    users[0].address.county = users1_address_county
-    users[0].phone_number = users1_phone
-
-    if other_parties1_name_full:
-      other_parties.appendObject()
-      other_parties[0].name = other_parties1_name_full
-      other_parties[0].address.address = other_parties1_address
-      other_parties[0].phone_number = other_parties1_phone
-  
-    children[0].name = children1_name_full
-    children[0].birthdate = children1_birthdate_date
-    children[0].address.address = children1_address
-    children[0].address.county = children1_address_county
     children[0].age = children1_age
-    mothers[0].name = mothers1_name_full
-    mothers[0].address.address = mothers1_address
     fathers[0].name = fathers1_name_full
     fathers[0].address.address = fathers1_address
     attorneys[0].name = attorneys_name
     attorneys[0].address.address = attorneys_address
     attorneys[0].phone_number = attorneys_phone_number
-   
     users.gathered = True
     children.gathered = True
     mothers.gathered = True
     fathers.gathered = True
     attorneys.gathered = True
-    other_parties.gathered = True
     people_lists_built = True
   set_progress(88)
   signature_date
   store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
   gpcsfwithfields_1_preview_question
+  basic_questions_signature_flow
   set_progress(100)
   gpcsfwithfields_1_download
+  
 ---
 id: GPCSF with fields 1 intro
 question: Petition For Temporary Letters of Guardianship of Minor
@@ -195,37 +180,60 @@ id: user_information
 question: Temporary Guardian Information
 subquestion: "Provide details about the petitioner seeking to be the appointed temporary guardian. If there is more than one petitioner, please provide the second petitioner's information on the next page."
 fields:
-  - Full Name: users1_name_full
-  - "Complete Address (Street, City, County, State, Zip)": users1_address
-  - County: users1_address_county
-  - Phone number: users1_phone
+  - code: |
+      users[i].name_fields()
+  - code: |
+      users[i].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
+  - label: County
+    field: users[i].address.county
+  - label: Phone number
+    field: users[i].phone_number
   - "Petitioner's relationship to Minor": users1_relationship_to_minor
 continue button field: user_information
 ---
-id: other_party_information
-question: Second Temporary Guardian (optional)
-subquestion: "If there is a second petitioner seeking to be the temporary guardian of the minor, please include their information here. If not, skip this page."
+id: second_guardian_yes_no
+question: Is there a second temporary guardian?
 fields:
-  - label: Full Name
-    field: other_parties1_name_full
-    required: False
-  - label: Address
-    field: other_parties1_address
-    required: False
-  - label: Phone Number
-    field: other_parties1_phone
-    required: False
-continue button field: other_party_information
+  - Is there a second temporary guardian?: has_second_guardian
+    datatype: yesnoradio
+continue button field: second_guardian_yes_no
+---
+id: second_guardian_information
+question: Second Temporary Guardian (optional)
+subquestion: "If there is a second petitioner seeking to be the temporary guardian of the minor, please provide their information here. If not, skip this page."
+fields:
+  - code: |
+      users[1].name_fields()
+  - code: |
+      users[1].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
+  - label: County
+    field: users[1].address.county
+  - label: Phone number
+    field: users[1].phone_number
+continue button field: second_guardian_information
 ---
 id: minor_information
 question: "Minor's Information"
 subquestion: "Provide details about the minor. If the Minor is 14 years of age or older at the time of filing, please include the \"Minor Selection Form\" with your filing."
 fields:
-  - "Minor's Full Name": children1_name_full
-  - "Minor's Date of Birth": children1_birthdate_date
+  - code: |
+      children[0].name_fields()
+  - code: |
+      children[0].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
+  - label: County
+    field: children[0].address.county
+  - label: Date of Birth
+    field: children[0].birthdate
     datatype: BirthDate
-  - "Minor's Complete Address (Street, City, County, State, Zip)": children1_address
-  - "Georgia County where the Minor resides": children1_address_county
   - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
     datatype: yesnoradio
   - "Minor's age at time of filing": children1_age
@@ -240,15 +248,13 @@ subquestion: |
 
   In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
 fields:
-  - "Mother's full name": mothers1_name_full
-  - "Mother's address": mothers1_address
-  - label: "Full name of Mother's Spouse (if applicable)"
-    field: mothers1_spouse_name_full
-    required: False
-  - label: "Address of Mother's Spouse"
-    field: mothers1_spouse_address
-    required: False
-    input type: area
+  - code: |
+      mothers[0].name_fields()
+  - code: |
+      mothers[0].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
   - label: Is the Mother deceased?
     field: mothers1_deceased_yes
     datatype: yesnoradio
@@ -268,8 +274,11 @@ fields:
     datatype: yesnoradio
   - "Was the Mother married to another during the conception, gestation or birth of the Child?": mother_other_married_yes
     datatype: yesnoradio
-  - label: "If yes, please include that person's full name:"
-    field: mothers_spouse2_name_full
+  - label: "Full name of Mother's Spouse (if applicable)"
+    field: mothers1_spouse_name_full
+    required: False
+  - label: "Address of Mother's Spouse"
+    field: mothers1_spouse_address
     required: False
 continue button field: mother_information
 ---
@@ -376,12 +385,11 @@ code: |
     'users[0].signature',
     'children[0].signature',
     'mothers[0].signature',
-    'fathers[0].signature',
-    'other_parties[0].signature'
+    'fathers[0].signature'
   ]
-
-  if other_parties1_name_full:
-    signature_fields.append('other_parties[0].signature')
+  
+  if has_second_guardian:
+    signature_fields.append('users[1].signature')
 
 ---
 code: |
@@ -669,17 +677,17 @@ attachment:
       - "users1_name_full__6": ${ users[0] }
       - "users1_name_full__7": ${ users[0] }
       - "users1_address_county": ${ users[0].address.county }
-      - "users1_address": ${ users1_address }
-      - "children1_address": ${ children1_address }
-      - "children1_address__1": ${ children1_address }
+      - "users1_address": ${ users[0].address }
+      - "children1_address": ${ children[0].address }
+      - "children1_address__1": ${ children[0].address }
       - "children1_age": ${ children[0].age_in_years() }
-      - "children1_birthdate_date": ${ children1_birthdate_date.format() }
+      - "children1_birthdate_date": ${ children[0].birthdate }
       - "users1_relationship_to_minor": ${ users1_relationship_to_minor }
       - "mothers1_name_full": ${ mothers[0] }
       - "mothers1_name_full__1": ${ mothers[0] }
       - "mothers1_name_full__2": ${ mothers[0] }
-      - "mothers1_address": ${ mothers1_address }
-      - "mothers1_address__1": ${ mothers1_address }
+      - "mothers1_address": ${ mothers[0].address }
+      - "mothers1_address__1": ${ mothers[0].address }
       - "mothers1_spouse_name_full": ${ mothers1_spouse_name_full }
       - "mothers1_spouse_address": ${ mothers1_spouse_address }
       - "fathers1_name_full": ${ fathers[0] }
@@ -692,19 +700,15 @@ attachment:
       - "users1_signature__2": ${ users[0].signature_if_final(i) }
       - "users1_signature__1": ${ users[0].signature_if_final(i) }
       - "users1_signature": ${ users[0].signature_if_final(i) }
-      - "other_parties1_signature": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
-      - "other_parties1_signature__1": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
-      - "other_parties1_signature__2": ${ other_parties[0].signature_if_final(i) if len(other_parties) > 0 else '' }
-      - "other_parties1_name_full": ${ other_parties1_name_full }
-      - "other_parties1_name_full__1": ${ other_parties1_name_full }
-      - "other_parties1_name_full__2": ${ other_parties1_name_full }
-      - "other_parties1_name_full__3": ${ other_parties1_name_full }
+      - "other_parties1_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+      - "other_parties1_name_full": ${ users[1] if len(users) > 1 else '' }
       - "users1_address_line_one": ${ users[0].address.line_one() }
-      - "other_parties1_address_line_one": ${ other_parties[0].address.line_one() if len(other_parties) > 0 else '' }
+      - "other_parties1_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
       - "users1_address_line_two": ${ users[0].address.line_two() }
-      - "other_parties1_address_line_two": ${ other_parties[0].address.line_two() if len(other_parties) > 0 else '' }
+      - "other_parties1_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
+
       - "users1_phone_number": ${ users[0].phone_number }
-      - "other_parties1_phone_number": ${ other_parties[0].phone_number if len(other_parties) > 0 else '' }
+      - "other_parties1_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
       - "attorneys_address": ${ attorneys_address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
