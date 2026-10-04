@@ -119,19 +119,41 @@ code: |
   users.appendObject()
   i = 0
   user_information
+  user_relationship
   nav.set_section('parties')
   second_guardian_yes_no
   if has_second_guardian:
     users.appendObject()
     second_guardian_information
   minor_information
+  minor_age
+  if minor_age_14_yes:
+    minor_selection_form_notice
   mother_information
+  mother_deceased
+  if not mothers1_deceased_yes:
+    mother_consent_custody
+    mother_legal_custody
+  mother_marital_status
+  if mother_other_married_yes:
+    mother_spouse_information
+  if not mothers1_deceased_yes:
+    mother_present
   father_information
+  father_deceased
+  if not father_deceased_yes:
+    father_consent_custody
+    father_legal_custody
+    father_present
   set_progress(50)
   nav.set_section('case_details')
   guardianship_details
   additional_data
-  attorney_information
+  attorney_yes_no
+  if has_attorney:
+    attorneys.appendObject()
+    attorney_information
+    attorney_present
   case_information
   set_progress(75)
   if not defined('people_lists_built'):
@@ -139,12 +161,6 @@ code: |
     mothers.appendObject()
     fathers.appendObject()
     attorneys.appendObject()
-    children[0].age = children1_age
-    fathers[0].name = fathers1_name_full
-    fathers[0].address.address = fathers1_address
-    attorneys[0].name = attorneys_name
-    attorneys[0].address.address = attorneys_address
-    attorneys[0].phone_number = attorneys_phone_number
     users.gathered = True
     children.gathered = True
     mothers.gathered = True
@@ -178,7 +194,8 @@ continue button field: gpcsfwithfields_1_intro
 ---
 id: user_information
 question: Temporary Guardian Information
-subquestion: "Provide details about the petitioner seeking to be the appointed temporary guardian. If there is more than one petitioner, please provide the second petitioner's information on the next page."
+subquestion: |
+  Provide information about the person seeking to be appointed as the temporary guardian.
 fields:
   - code: |
       users[i].name_fields()
@@ -191,8 +208,13 @@ fields:
     field: users[i].address.county
   - label: Phone number
     field: users[i].phone_number
-  - "Petitioner's relationship to Minor": users1_relationship_to_minor
 continue button field: user_information
+---
+id: user_relationship
+question: Relationship to the Minor
+fields:
+  - "What is your relationship to the Minor?": users1_relationship_to_minor
+continue button field: user_relationship
 ---
 id: second_guardian_yes_no
 question: Is there a second temporary guardian?
@@ -219,8 +241,9 @@ fields:
 continue button field: second_guardian_information
 ---
 id: minor_information
-question: "Minor's Information"
-subquestion: "Provide details about the minor. If the Minor is 14 years of age or older at the time of filing, please include the \"Minor Selection Form\" with your filing."
+question: Minor's Information
+subquestion: |
+  Provide details about the Minor.
 fields:
   - code: |
       children[0].name_fields()
@@ -234,17 +257,29 @@ fields:
   - label: Date of Birth
     field: children[0].birthdate
     datatype: BirthDate
-  - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
-    datatype: yesnoradio
-  - "Minor's age at time of filing": children1_age
-    datatype: integer
 continue button field: minor_information
 ---
-id: mother_information
-question: |
-  Mother's Information
+id: minor_age
+question: Minor's Age
 subquestion: |
-  Provide details about the Minor's mother.
+  If the Minor is 14 years of age or older at the time of filing, a Minor Selection Form must be included with your filing.
+fields:
+  - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
+    datatype: yesnoradio
+continue button field: minor_age
+---
+id: minor_selection_form_notice
+question: Minor Selection Form
+subquestion: |
+  Because the Minor is 14 years of age or older, a Minor Selection Form must be included with the filing.
+
+  Please make sure the Minor Selection Form is completed and included with your filing.
+continue button field: minor_selection_form_notice
+---
+id: mother_information
+question: Mother's Information
+subquestion: |
+  Provide information about the Minor's mother.
 
   In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
 fields:
@@ -255,60 +290,123 @@ fields:
           country_code=AL_DEFAULT_COUNTRY,
           default_state=AL_DEFAULT_STATE
       )
-  - label: Is the Mother deceased?
-    field: mothers1_deceased_yes
+continue button field: mother_information
+---
+id: mother_deceased
+question: Mother's Status
+fields:
+  - "Is the Minor's mother deceased?": mothers1_deceased_yes
     datatype: yesnoradio
+continue button field: mother_deceased
+---
+id: mother_consent_custody
+question: Mother's Consent and Custody
+fields:
   - "Has the Mother signed a consent for the creation of this temporary guardianship?": mothers1_signed_consent_yes
     datatype: yesnoradio
   - "Is the Mother’s address known and listed above?": motherss1_address_listed_yes
     datatype: yesnoradio
   - "Have the Mother’s rights been terminated via Court Order?": mothers1_rights_terminated_yes
     datatype: yesnoradio
+continue button field: mother_consent_custody
+---
+id: mother_legal_custody
+question: Mother's Legal Custody
+fields:
   - "Has the Mother lost custody via Court Order?": mother_lost_custody_yes
     datatype: yesnoradio
   - "Does the Mother have joint legal custody via Court Order?": mother_joint_custody_yes
     datatype: yesnoradio
   - "Does the Mother have sole legal custody via Court Order?": mother_sole_custody_yes
     datatype: yesnoradio
+continue button field: mother_legal_custody
+---
+id: mother_marital_status
+question: Mother's Marital Status
+fields:
   - "Was the Mother married to the Father of the child during or after the conception of the Child?": mother_father_married_yes
     datatype: yesnoradio
   - "Was the Mother married to another during the conception, gestation or birth of the Child?": mother_other_married_yes
     datatype: yesnoradio
-  - label: "Full name of Mother's Spouse (if applicable)"
+continue button field: mother_marital_status
+---
+id: mother_spouse_information
+question: Mother's Spouse Information
+subquestion: |
+  Please provide information about the Mother's spouse if she was married to someone other than the Father during the conception, gestation, or birth of the Minor.
+fields:
+  - label: "Full name of Mother's Spouse"
     field: mothers1_spouse_name_full
-    required: False
   - label: "Address of Mother's Spouse"
     field: mothers1_spouse_address
-    required: False
-continue button field: mother_information
+continue button field: mother_spouse_information
+---
+id: mother_present
+question: Mother's Presence
+subquestion: |
+  Is the Minor's mother present during this interview?
+
+  If the Mother is not present, her signature can be added at a later time.
+fields:
+  - "Is the Mother present during this interview?": mother_present_yes
+    datatype: yesnoradio
+continue button field: mother_present
 ---
 id: father_information
-question: |
-  Father's Information
+question: Father's Information
 subquestion: |
   Provide details about the Minor's father.
 
   In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
 fields:
-  - label: "Father's full name"
-    field: fathers1_name_full
-    input type: area
-  - "Father's address": fathers1_address
-  - "Is the Minor's Father deceased? ": father_deceased_yes
+  - code: |
+      fathers[0].name_fields()
+  - code: |
+      fathers[0].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
+continue button field: father_information
+---
+id: father_deceased
+question: Father's Status
+fields:
+  - "Is the Minor's Father deceased?": father_deceased_yes
     datatype: yesnoradio
+continue button field: father_deceased
+---
+id: father_consent_custody
+question: Father's Consent and Custody
+fields:
   - "Has the Father signed a consent for the creation of this temporary guardianship?": father_consent_yes
     datatype: yesnoradio
   - "Is the Father’s address known and listed above?": father_address_listed_yes
     datatype: yesnoradio
   - "Have the Father’s rights been terminated via Court Order?": fathers_rights_terminated_yes
     datatype: yesnoradio
+continue button field: father_consent_custody
+---
+id: father_legal_custody
+question: Father's Legal Custody
+fields:
   - "Has the Father lost custody via Court Order?": father_lost_custody_yes
     datatype: yesnoradio
   - "Does the Father have joint legal custody via Court Order?": father_joint_custody_yes
     datatype: yesnoradio
   - "Does the Father have sole legal custody via Court Order?": father_sole_custody_yes
     datatype: yesnoradio
-continue button field: father_information
+continue button field: father_legal_custody
+---
+id: father_present
+question: Father's Presence
+subquestion: |
+  Is the Minor's father present during this interview?
+
+  If the Father is not present, his signature can be added at a later time.
+fields:
+  - "Is the Father present during this interview?": father_present_yes
+    datatype: yesnoradio
+continue button field: father_present
 ---
 id: guardianship_details
 question: Temporary Guardianship Details
@@ -334,27 +432,44 @@ fields:
     input type: area
 continue button field: additional_data
 ---
+id: attorney_yes_no
+question: "Is an attorney representing the Temporary Guardian?"
+fields:
+  - Is an attorney representing the petitioner?: has_attorney
+    datatype: yesnoradio
+continue button field: attorney_yes_no
+---
 id: attorney_information
 question: Attorney Information
-subquestion: "If known, please provide the attorney information for the petitioner seeking temporary guardianship. If unknown, skip this page."
+subquestion: "Please provide the attorney information for the petitioner seeking temporary guardianship."
 fields:
-  - label: "Attorney's Name"
-    field: attorneys_name
-    required: False
-  - label: "Attorney's address"
-    field: attorneys_address
-    required: False
+  - code: |
+      attorneys[0].name_fields()
+  - code: |
+      attorneys[0].address_fields(
+          country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE
+      )
   - label: "Attorney's phone number"
-    field: attorneys_phone_number
-    required: False
+    field: attorneys[0].phone_number
   - label: "Attorney's State Bar Number"
     field: attorneys_bar_number
-    required: False
 continue button field: attorney_information
+---
+id: attorney_present
+question: Attorney's Presence
+subquestion: |
+  Is the attorney representing the petitioner present during this interview?
+
+  If the attorney is not present, their signature can be added at a later time.
+fields:
+  - "Is the attorney present during this interview?": attorney_present_yes
+    datatype: yesnoradio
+continue button field: attorney_present
 ---
 id: case_information
 question: Case Information
-subquestion: "Please provide the case details, if known. If unknown, skip this page."
+subquestion: "Please provide the case details, if known. "
 fields:
   - label: Case Number or Docket Number
     field: docket_number
@@ -383,13 +498,20 @@ continue button field: gpcsfwithfields_1_preview_question
 code: |
   signature_fields = [
     'users[0].signature',
-    'children[0].signature',
-    'mothers[0].signature',
-    'fathers[0].signature'
+    'children[0].signature'
   ]
+
+  if not mothers1_deceased_yes and mother_present_yes:
+    signature_fields.append('mothers[0].signature')
+  
+  if not father_deceased_yes and father_present_yes:
+    signature_fields.append('fathers[0].signature')
   
   if has_second_guardian:
     signature_fields.append('users[1].signature')
+  
+  if has_attorney and attorney_present_yes:
+    signature_fields.append('attorneys[0].signature')
 
 ---
 code: |
@@ -419,16 +541,11 @@ review:
   - Edit: children1_birthdate_date
     button: |
       **Minor's Information**
-
       Minor name: ${ showifdef('children1_name_full') }
-
       Child birthdate: ${ showifdef('children1_birthdate_date') }
-
       Child address: ${ showifdef('children1_address') }
-
       Child county: ${ showifdef('children1_address_county') }
-
-      Age at filing: ${ showifdef('children1_age') }
+      Age at filing: ${ children[0].age_in_years() }
   - Edit: mothers1_address
     button: |
       **Mother's Information**
@@ -683,18 +800,66 @@ attachment:
       - "children1_age": ${ children[0].age_in_years() }
       - "children1_birthdate_date": ${ children[0].birthdate }
       - "users1_relationship_to_minor": ${ users1_relationship_to_minor }
+      - "minor_age_14_yes": ${ minor_age_14_yes }
+      - "minor_age_14_no": ${ not minor_age_14_yes }        
       - "mothers1_name_full": ${ mothers[0] }
       - "mothers1_name_full__1": ${ mothers[0] }
       - "mothers1_name_full__2": ${ mothers[0] }
       - "mothers1_address": ${ mothers[0].address }
       - "mothers1_address__1": ${ mothers[0].address }
+      - "mothers1_deceased_yes": ${ mothers1_deceased_yes }
+      - "mothers1_deceased_no": ${ not mothers1_deceased_yes }
+
+      - "mothers1_signed_consent_yes": ${ mothers1_signed_consent_yes }
+      - "mothers1_signed_consent_no": ${ not mothers1_signed_consent_yes }
+
+      - "motherss1_address_listed_yes": ${ motherss1_address_listed_yes }
+      - "motherss1_address_listed_no": ${ not motherss1_address_listed_yes }
+
+      - "mothers1_rights_terminated_yes": ${ mothers1_rights_terminated_yes }
+      - "mothers1_rights_terminated_no": ${ not mothers1_rights_terminated_yes }
+
+      - "mother_lost_custody_yes": ${ mother_lost_custody_yes }
+      - "mother_lost_custody_no": ${ not mother_lost_custody_yes }
+
+      - "mother_joint_custody_yes": ${ mother_joint_custody_yes }
+      - "mother_joint_custody_no": ${ not mother_joint_custody_yes }
+
+      - "mother_sole_custody_yes": ${ mother_sole_custody_yes }
+      - "mother_sole_custody_no": ${ not mother_sole_custody_yes }
+
+      - "mother_father_married_yes": ${ mother_father_married_yes }
+      - "mother_father_married_no": ${ not mother_father_married_yes }
+
+      - "mother_other_married_yes": ${ mother_other_married_yes }
+      - "mother_other_married_no": ${ not mother_other_married_yes }
       - "mothers1_spouse_name_full": ${ mothers1_spouse_name_full }
       - "mothers1_spouse_address": ${ mothers1_spouse_address }
       - "fathers1_name_full": ${ fathers[0] }
       - "fathers1_name_full__1": ${ fathers[0] }
       - "fathers1_name_full__2": ${ fathers[0] }
-      - "fathers1_address": ${ fathers1_address }
-      - "fathers1_address__1": ${ fathers1_address }
+      - "fathers1_address": ${ fathers[0].address }
+      - "father_deceased_yes": ${ father_deceased_yes }
+      - "father_deceased_no": ${ not father_deceased_yes }
+
+      - "father_consent_yes": ${ father_consent_yes }
+      - "father_consent_no": ${ not father_consent_yes }
+
+      - "father_address_listed_yes": ${ father_address_listed_yes }
+      - "father_address_listed_no": ${ not father_address_listed_yes }
+
+      - "fathers_rights_terminated_yes": ${ fathers_rights_terminated_yes }
+      - "fathers_rights_terminated_no": ${ not fathers_rights_terminated_yes }
+
+      - "father_lost_custody_yes": ${ father_lost_custody_yes }
+      - "father_lost_custody_no": ${ not father_lost_custody_yes }
+
+      - "father_joint_custody_yes": ${ father_joint_custody_yes }
+      - "father_joint_custody_no": ${ not father_joint_custody_yes }
+
+      - "father_sole_custody_yes": ${ father_sole_custody_yes }
+      - "father_sole_custody_no": ${ not father_sole_custody_yes }
+      
       - "guardianship_reason": ${ guardianship_reason }
       - "Additional_data": ${ Additional_data }
       - "users1_signature__2": ${ users[0].signature_if_final(i) }
@@ -710,10 +875,70 @@ attachment:
       - "users1_phone_number": ${ users[0].phone_number }
       - "other_parties1_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
-      - "attorneys_address": ${ attorneys_address }
+      - "attorneys_address": ${ attorneys[0].address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
       - "attorneys_bar_number": ${ attorneys_bar_number }
       - "children1_address_county": ${ children[0].address.county }
       - "children1_signature": ${ children[0].signature_if_final(i) }
       - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
       - "fathers1_signature": ${ fathers[0].signature_if_final(i) }
+---
+objects:
+  - judge: ALPeopleList.using(ask_number=True,target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True,target_number=1)
+---
+id: Users1 address
+question: |
+  Users1 address
+fields:
+- Users1 address: users1_address
+  maxlength: 66
+- Children1 address: children1_address
+  maxlength: 72
+- Date of children1 birthdate: children1_birthdate_date
+  datatype: date
+- Mothers1 address: mothers1_address
+  maxlength: 76
+- Motherss1 address listed: motherss1_address_listed
+  datatype: yesno
+- Clerk of probate name: clerk_of_probate_name
+  datatype: yesno
+- Clerk address: clerk_address
+  datatype: yesno
+- Temp guardian names: temp_guardian_names
+  datatype: yesno
+- Judge of probate name: judge_of_probate_name
+  datatype: yesno
+---
+id: Users1 relationship to minor
+question: |
+  Users1 relationship to minor
+fields:
+- Mothers1 deceased: mothers1_deceased
+  datatype: yesno
+- Mothers1 signed consent: mothers1_signed_consent
+  datatype: yesno
+- Mothers1 rights terminated: mothers1_rights_terminated
+  datatype: yesno
+- Mother lost custody: mother_lost_custody
+  datatype: yesno
+- Mother joint custody: mother_joint_custody
+  datatype: yesno
+- Mother sole custody: mother_sole_custody
+  datatype: yesno
+- Mother father married: mother_father_married
+  datatype: yesno
+- Mother other married: mother_other_married
+  datatype: yesno
+- F: f
+  datatype: yesno
+- Final1 flag: final1_flag
+  datatype: yesno
+- Temp letters day: temp_letters_day
+  datatype: yesno
+- Guardianship initialed permanent flag: guardianship_initialed_permanent_flag
+  datatype: yesno
+- Temp letters additional info: temp_letters_additional_info
+  datatype: yesno
+- Temp letters year: temp_letters_year
+  datatype: yesno
