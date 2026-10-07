@@ -137,14 +137,11 @@ code: |
   mother_marital_status
   if mother_other_married_yes:
     mother_spouse_information
-  if not mothers1_deceased_yes:
-    mother_present
   father_information
   father_deceased
   if not father_deceased_yes:
     father_consent_custody
     father_legal_custody
-    father_present
   set_progress(50)
   nav.set_section('case_details')
   guardianship_details
@@ -168,10 +165,14 @@ code: |
     attorneys.gathered = True
     people_lists_built = True
   set_progress(88)
-  signature_date
+  if notary_present:
+    if has_attorney:
+      attorney_present
+    signature_date
   store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
   gpcsfwithfields_1_preview_question
-  basic_questions_signature_flow
+  if notary_present:
+    basic_questions_signature_flow
   set_progress(100)
   gpcsfwithfields_1_download
   
@@ -194,21 +195,26 @@ continue button field: gpcsfwithfields_1_intro
 ---
 id: user_information
 question: Temporary Guardian Information
-subquestion: |
-  Provide information about the person seeking to be appointed as the temporary guardian.
+subquestion: "Provide your information."
 fields:
   - code: |
       users[i].name_fields()
   - code: |
-      users[i].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
-  - label: County
-    field: users[i].address.county
-  - label: Phone number
-    field: users[i].phone_number
+      users[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
+  - County: "users[i].address.county"
+  - Phone number: "users[i].phone_number"
 continue button field: user_information
+sets:
+  - "users[i].name.first"
+  - "users[i].name.last"
+  - "users[i].name.middle"
+  - "users[i].name.suffix"
+  - "users[i].address.address"
+  - "users[i].address.city"
+  - "users[i].address.zip"
+  - "users[i].address.unit"
+  - "users[i].address.state"
+  - "users[i].address.country"
 ---
 id: user_relationship
 question: Relationship to the Minor
@@ -224,26 +230,31 @@ fields:
 continue button field: second_guardian_yes_no
 ---
 id: second_guardian_information
-question: Second Temporary Guardian (optional)
-subquestion: "If there is a second petitioner seeking to be the temporary guardian of the minor, please provide their information here. If not, skip this page."
+question: Second Temporary Guardian
+subquestion: "If a second person is being added as a temporary guardian of the minor, please provide their information here."
 fields:
   - code: |
       users[1].name_fields()
   - code: |
-      users[1].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
-  - label: County
-    field: users[1].address.county
-  - label: Phone number
-    field: users[1].phone_number
+      users[1].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
+  - County: "users[1].address.county"
+  - Phone number: "users[1].phone_number"
 continue button field: second_guardian_information
+sets:
+  - "users[1].name.first"
+  - "users[1].name.last"
+  - "users[1].name.middle"
+  - "users[1].name.suffix"
+  - "users[1].address.address"
+  - "users[1].address.city"
+  - "users[1].address.zip"
+  - "users[1].address.unit"
+  - "users[1].address.state"
+  - "users[1].address.country"
 ---
 id: minor_information
 question: Minor's Information
-subquestion: |
-  Provide details about the Minor.
+subquestion: "Provide details about the Minor. If you are filing a petition for more than one minor, please use a separate form for each. "
 fields:
   - code: |
       children[0].name_fields()
@@ -302,32 +313,48 @@ continue button field: mother_deceased
 id: mother_consent_custody
 question: Mother's Consent and Custody
 fields:
-  - "Has the Mother signed a consent for the creation of this temporary guardianship?": mothers1_signed_consent_yes
+  - label: Has the Mother signed a consent for the creation of this temporary guardianship?
+    field: mothers1_signed_consent_yes
     datatype: yesnoradio
-  - "Is the Mother’s address known and listed above?": motherss1_address_listed_yes
+    required: False
+  - label: Is the Mother’s address known and listed above?
+    field: motherss1_address_listed_yes
     datatype: yesnoradio
-  - "Have the Mother’s rights been terminated via Court Order?": mothers1_rights_terminated_yes
+    required: False
+  - label: Have the Mother’s rights been terminated via Court Order?
+    field: mothers1_rights_terminated_yes
     datatype: yesnoradio
+    required: False
 continue button field: mother_consent_custody
 ---
 id: mother_legal_custody
 question: Mother's Legal Custody
 fields:
-  - "Has the Mother lost custody via Court Order?": mother_lost_custody_yes
+  - label: Has the Mother lost custody via Court Order?
+    field: mother_lost_custody_yes
     datatype: yesnoradio
-  - "Does the Mother have joint legal custody via Court Order?": mother_joint_custody_yes
+    required: False
+  - label: Does the Mother have joint legal custody via Court Order?
+    field: mother_joint_custody_yes
     datatype: yesnoradio
-  - "Does the Mother have sole legal custody via Court Order?": mother_sole_custody_yes
+    required: False
+  - label: Does the Mother have sole legal custody via Court Order?
+    field: mother_sole_custody_yes
     datatype: yesnoradio
+    required: False
 continue button field: mother_legal_custody
 ---
 id: mother_marital_status
 question: Mother's Marital Status
 fields:
-  - "Was the Mother married to the Father of the child during or after the conception of the Child?": mother_father_married_yes
+  - label: Was the Mother married to the Father of the child during or after the conception of the Child?
+    field: mother_father_married_yes
     datatype: yesnoradio
-  - "Was the Mother married to another during the conception, gestation or birth of the Child?": mother_other_married_yes
+    required: False
+  - label: "Was the Mother married to another during the conception, gestation or birth of the Child?"
+    field: mother_other_married_yes
     datatype: yesnoradio
+    required: False
 continue button field: mother_marital_status
 ---
 id: mother_spouse_information
@@ -340,17 +367,6 @@ fields:
   - label: "Address of Mother's Spouse"
     field: mothers1_spouse_address
 continue button field: mother_spouse_information
----
-id: mother_present
-question: Mother's Presence
-subquestion: |
-  Is the Minor's mother present during this interview?
-
-  If the Mother is not present, her signature can be added at a later time.
-fields:
-  - "Is the Mother present during this interview?": mother_present_yes
-    datatype: yesnoradio
-continue button field: mother_present
 ---
 id: father_information
 question: Father's Information
@@ -378,35 +394,36 @@ continue button field: father_deceased
 id: father_consent_custody
 question: Father's Consent and Custody
 fields:
-  - "Has the Father signed a consent for the creation of this temporary guardianship?": father_consent_yes
+  - label: Has the Father signed a consent for the creation of this temporary guardianship?
+    field: father_consent_yes
     datatype: yesnoradio
-  - "Is the Father’s address known and listed above?": father_address_listed_yes
+    required: False
+  - label: Is the Father’s address known and listed above?
+    field: father_address_listed_yes
     datatype: yesnoradio
-  - "Have the Father’s rights been terminated via Court Order?": fathers_rights_terminated_yes
+    required: False
+  - label: Have the Father’s rights been terminated via Court Order?
+    field: fathers_rights_terminated_yes
     datatype: yesnoradio
+    required: False
 continue button field: father_consent_custody
 ---
 id: father_legal_custody
 question: Father's Legal Custody
 fields:
-  - "Has the Father lost custody via Court Order?": father_lost_custody_yes
+  - label: Has the Father lost custody via Court Order?
+    field: father_lost_custody_yes
     datatype: yesnoradio
-  - "Does the Father have joint legal custody via Court Order?": father_joint_custody_yes
+    required: False
+  - label: Does the Father have joint legal custody via Court Order?
+    field: father_joint_custody_yes
     datatype: yesnoradio
-  - "Does the Father have sole legal custody via Court Order?": father_sole_custody_yes
+    required: False
+  - label: Does the Father have sole legal custody via Court Order?
+    field: father_sole_custody_yes
     datatype: yesnoradio
+    required: False
 continue button field: father_legal_custody
----
-id: father_present
-question: Father's Presence
-subquestion: |
-  Is the Minor's father present during this interview?
-
-  If the Father is not present, his signature can be added at a later time.
-fields:
-  - "Is the Father present during this interview?": father_present_yes
-    datatype: yesnoradio
-continue button field: father_present
 ---
 id: guardianship_details
 question: Temporary Guardianship Details
@@ -446,21 +463,29 @@ fields:
   - code: |
       attorneys[0].name_fields()
   - code: |
-      attorneys[0].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
+      attorneys[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
   - label: "Attorney's phone number"
-    field: attorneys[0].phone_number
+    field: "attorneys[0].phone_number"
+    required: False
   - label: "Attorney's State Bar Number"
     field: attorneys_bar_number
+    required: False
 continue button field: attorney_information
+sets:
+  - "attorneys[0].name.first"
+  - "attorneys[0].name.last"
+  - "attorneys[0].name.middle"
+  - "attorneys[0].name.suffix"
+  - "attorneys[0].address.address"
+  - "attorneys[0].address.city"
+  - "attorneys[0].address.zip"
+  - "attorneys[0].address.unit"
+  - "attorneys[0].address.state"
+  - "attorneys[0].address.country"
 ---
 id: attorney_present
 question: Attorney's Presence
-subquestion: |
-  Is the attorney representing the petitioner present during this interview?
-
+subquestion: |2
   If the attorney is not present, their signature can be added at a later time.
 fields:
   - "Is the attorney present during this interview?": attorney_present_yes
@@ -479,6 +504,14 @@ fields:
     required: False
 continue button field: case_information
 ---
+id: notary_present
+question: Notary Presence
+subquestion: "If a Notary is not present, signatures can be added later. "
+fields:
+  - Is a Notary present?: notary_present
+    datatype: yesnoradio
+continue button field: notary_present
+---
 # Preview and review are kept separate from the custom interview questions.
 id: preview_gpcsfwithfields_1
 question: |
@@ -496,23 +529,16 @@ subquestion: |
 continue button field: gpcsfwithfields_1_preview_question
 ---
 code: |
-  signature_fields = [
-    'users[0].signature',
-    'children[0].signature'
-  ]
+  signature_fields = []
 
-  if not mothers1_deceased_yes and mother_present_yes:
-    signature_fields.append('mothers[0].signature')
-  
-  if not father_deceased_yes and father_present_yes:
-    signature_fields.append('fathers[0].signature')
-  
-  if has_second_guardian:
-    signature_fields.append('users[1].signature')
-  
-  if has_attorney and attorney_present_yes:
-    signature_fields.append('attorneys[0].signature')
+  if notary_present:
+    signature_fields.append('users[0].signature')
 
+    if has_second_guardian:
+      signature_fields.append('users[1].signature')
+
+    if has_attorney and attorney_present_yes:
+      signature_fields.append('attorneys[0].signature')
 ---
 code: |
   # This is a placeholder for the addresses that will be searched
@@ -746,6 +772,9 @@ attachment:
   pdf template file: GPCSF-with-fields_1.pdf
   fields:
       - "trial_court_county": ${ trial_court_county }
+      - "trial_court_county__1": ${ trial_court_county }
+      - "trial_court_county__2": ${ trial_court_county }
+      - "trial_court_county__3": ${ trial_court_county }
       - "trial_court_county__5": ${ trial_court_county }
       - "trial_court_county__6": ${ trial_court_county }
       - "trial_court_county__8": ${ trial_court_county }
@@ -773,6 +802,7 @@ attachment:
       - "children1_name_full__6": ${ children[0] }
       - "children1_name_full__7": ${ children[0] }
       - "children1_name_full__8": ${ children[0] }
+      - "children1_name_last__1": ${ children[0].name.last }
       - "docket_number": ${ docket_number }
       - "docket_number__11": ${ docket_number }
       - "docket_number__15": ${ docket_number }
@@ -861,84 +891,46 @@ attachment:
       - "father_sole_custody_no": ${ not father_sole_custody_yes }
       
       - "guardianship_reason": ${ guardianship_reason }
-      - "Additional_data": ${ Additional_data }
+      - "additional_data": ${ (Additional_data) }
       - "users1_signature__2": ${ users[0].signature_if_final(i) }
       - "users1_signature__1": ${ users[0].signature_if_final(i) }
+      - "users1_signature_1": ${ users[0].signature_if_final(i) }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "other_parties1_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
       - "other_parties1_name_full": ${ users[1] if len(users) > 1 else '' }
+      - "other_parties1_name_full__1": ${ users[1] if len(users) > 1 else '' }
       - "users1_address_line_one": ${ users[0].address.line_one() }
       - "other_parties1_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
       - "users1_address_line_two": ${ users[0].address.line_two() }
       - "other_parties1_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
-
+      - "other_parties1_signature__1": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
       - "users1_phone_number": ${ users[0].phone_number }
       - "other_parties1_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
       - "attorneys_address": ${ attorneys[0].address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
       - "attorneys_bar_number": ${ attorneys_bar_number }
+      - "attorneys_signature": ${ attorneys[0].signature_if_final(i) if has_attorney and attorney_present_yes else '' }
       - "children1_address_county": ${ children[0].address.county }
       - "children1_signature": ${ children[0].signature_if_final(i) }
       - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
       - "fathers1_signature": ${ fathers[0].signature_if_final(i) }
----
-objects:
-  - judge: ALPeopleList.using(ask_number=True,target_number=1)
-  - other_parties: ALPeopleList.using(ask_number=True,target_number=1)
----
-id: Users1 address
-question: |
-  Users1 address
-fields:
-- Users1 address: users1_address
-  maxlength: 66
-- Children1 address: children1_address
-  maxlength: 72
-- Date of children1 birthdate: children1_birthdate_date
-  datatype: date
-- Mothers1 address: mothers1_address
-  maxlength: 76
-- Motherss1 address listed: motherss1_address_listed
-  datatype: yesno
-- Clerk of probate name: clerk_of_probate_name
-  datatype: yesno
-- Clerk address: clerk_address
-  datatype: yesno
-- Temp guardian names: temp_guardian_names
-  datatype: yesno
-- Judge of probate name: judge_of_probate_name
-  datatype: yesno
----
-id: Users1 relationship to minor
-question: |
-  Users1 relationship to minor
-fields:
-- Mothers1 deceased: mothers1_deceased
-  datatype: yesno
-- Mothers1 signed consent: mothers1_signed_consent
-  datatype: yesno
-- Mothers1 rights terminated: mothers1_rights_terminated
-  datatype: yesno
-- Mother lost custody: mother_lost_custody
-  datatype: yesno
-- Mother joint custody: mother_joint_custody
-  datatype: yesno
-- Mother sole custody: mother_sole_custody
-  datatype: yesno
-- Mother father married: mother_father_married
-  datatype: yesno
-- Mother other married: mother_other_married
-  datatype: yesno
-- F: f
-  datatype: yesno
-- Final1 flag: final1_flag
-  datatype: yesno
-- Temp letters day: temp_letters_day
-  datatype: yesno
-- Guardianship initialed permanent flag: guardianship_initialed_permanent_flag
-  datatype: yesno
-- Temp letters additional info: temp_letters_additional_info
-  datatype: yesno
-- Temp letters year: temp_letters_year
-  datatype: yesno
+      - "trial_court_county__3": ${ trial_court_county }
+      - "children1_name_last__3": ${ children[0].name.last }
+      - "docket_number__3": ${ docket_number }
+      - "fathers1_address__1": ${ fathers[0].address }
+      - "users1_name_full__5": ${ users[0] }
+      - "other_parties1_name_full__3": ${ users[1] if len(users) > 1 else '' }
+      - "fathers1_signature": ${ fathers[0].signature_if_final(i) }
+      - "trial_court_county__2": ${ trial_court_county }
+      - "children1_name_last__2": ${ children[0].name.last }
+      - "docket_number__2": ${ docket_number }
+      - "users1_name_full__4": ${ users[0] }
+      - "other_parties1_name_full__2": ${ users[1] if len(users) > 1 else '' }
+      - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
+      - "trial_court_county_1": ${ trial_court_county }
+      - "children1_name_last__1": ${ children[0].name.last }
+      - "docket_number__1": ${ docket_number }
+      - "children1_address_county": ${ children[0].address.county }
+      - "users1_name_full__3": ${ users[0] }     
+      - "children1_name_last": ${ children[0].name.last }
