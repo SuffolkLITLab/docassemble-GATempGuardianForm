@@ -74,12 +74,13 @@ code: |
 ---
 id: alweaver assemblyline settings
 initial: True
+
 code: |
   # These exact-name variables drive the reusable next-steps DOCX shell and
   # are editable in Weaver's AssemblyLine settings panel.
   al_next_steps_enabled = True
+  al_next_steps_title = 'Georgia Temporary Guardianship'
   al_next_steps_intro_prompt = 'File a Petition for Temporary Guardianship'
-  al_next_steps_title = 'GPCSF-with-fields (1)'
   al_next_steps_document_title = 'Petition'
   al_next_steps_document_purpose = 'Application'
   al_next_steps_help_organization = 'Georgia Probate Court'
@@ -179,23 +180,23 @@ code: |
 ---
 id: GPCSF with fields 1 intro
 question: Petition For Temporary Letters of Guardianship of Minor
-subquestion: |
-  **In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
+subquestion: |2
+  **To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
   
-  ### To complete the form:
-  - Gather all necessary information about the minor and their parents.
-  - Ensure you have the required documents, like the minor's birth certificate.
+  ### To fill in the form:
+  - You'll need information about the minor and their parents.
+  - Make sure you have the required documents, like the minor's birth certificate, parent's death certificate, or any court orders about custody.
   
   ### When you are finished
-  - Submit the completed petition to the appropriate Probate Court.
-  - Ensure that all parties are notified as required by law.
+  - File the completed form with the Probate Court in the county where you live.
+  - Make sure that all parties are notified as required by law.
   
   You can use this form if you need to temporarily care for a minor and have the necessary legal relationship with them. Make sure to notify the parents of the minor as required.
 continue button field: gpcsfwithfields_1_intro
 ---
 id: user_information
 question: Temporary Guardian Information
-subquestion: "Provide your information."
+subquestion: "Fill in your information."
 fields:
   - code: |
       users[i].name_fields()
@@ -231,7 +232,7 @@ continue button field: second_guardian_yes_no
 ---
 id: second_guardian_information
 question: Second Temporary Guardian
-subquestion: "If a second person is being added as a temporary guardian of the minor, please provide their information here."
+subquestion: "If a second person is being added as a temporary guardian of the minor, fill in their information here."
 fields:
   - code: |
       users[1].name_fields()
@@ -254,26 +255,31 @@ sets:
 ---
 id: minor_information
 question: Minor's Information
-subquestion: "Provide details about the Minor. If you are filing a petition for more than one minor, please use a separate form for each. "
+subquestion: "Give details about the Minor. If you are filing for temporary guardianship for more than one minor, you must fill out a separate form for each. "
 fields:
   - code: |
       children[0].name_fields()
   - code: |
-      children[0].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
-  - label: County
-    field: children[0].address.county
-  - label: Date of Birth
-    field: children[0].birthdate
+      children[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE)
+  - County: "children[0].address.county"
+  - Date of Birth: "children[0].birthdate"
     datatype: BirthDate
 continue button field: minor_information
+sets:
+  - "children[0].name.first"
+  - "children[0].name.last"
+  - "children[0].name.middle"
+  - "children[0].name.suffix"
+  - "children[0].address.address"
+  - "children[0].address.city"
+  - "children[0].address.zip"
+  - "children[0].address.unit"
+  - "children[0].address.state"
+  - "children[0].address.country"
 ---
 id: minor_age
 question: Minor's Age
-subquestion: |
-  If the Minor is 14 years of age or older at the time of filing, a Minor Selection Form must be included with your filing.
 fields:
   - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
     datatype: yesnoradio
@@ -281,27 +287,31 @@ continue button field: minor_age
 ---
 id: minor_selection_form_notice
 question: Minor Selection Form
-subquestion: |
-  Because the Minor is 14 years of age or older, a Minor Selection Form must be included with the filing.
-
-  Please make sure the Minor Selection Form is completed and included with your filing.
+subquestion: |2
+  Because the Minor is 14 years of age or older, a Minor Selection Form can be included with the filing. A Minor selection form gives the minor the chance to "select" the temporary guardian of their choice. This form can be found on the probate court's website but *it is not required to file the petition*. 
 continue button field: minor_selection_form_notice
 ---
 id: mother_information
 question: Mother's Information
-subquestion: |
-  Provide information about the Minor's mother.
-
-  In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
+subquestion: "**To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**"
 fields:
   - code: |
       mothers[0].name_fields()
   - code: |
-      mothers[0].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
+      mothers[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE)
 continue button field: mother_information
+sets:
+  - "mothers[0].name.first"
+  - "mothers[0].name.last"
+  - "mothers[0].name.middle"
+  - "mothers[0].name.suffix"
+  - "mothers[0].address.address"
+  - "mothers[0].address.city"
+  - "mothers[0].address.zip"
+  - "mothers[0].address.unit"
+  - "mothers[0].address.state"
+  - "mothers[0].address.country"
 ---
 id: mother_deceased
 question: Mother's Status
@@ -313,15 +323,15 @@ continue button field: mother_deceased
 id: mother_consent_custody
 question: Mother's Consent and Custody
 fields:
-  - label: Has the Mother signed a consent for the creation of this temporary guardianship?
+  - label: Has the Mother signed a consent for this temporary guardianship?
     field: mothers1_signed_consent_yes
     datatype: yesnoradio
     required: False
-  - label: Is the Mother’s address known and listed above?
+  - label: Is the Mother’s address known?
     field: motherss1_address_listed_yes
     datatype: yesnoradio
     required: False
-  - label: Have the Mother’s rights been terminated via Court Order?
+  - label: Have the Mother’s rights been terminated by Court Order?
     field: mothers1_rights_terminated_yes
     datatype: yesnoradio
     required: False
@@ -351,7 +361,7 @@ fields:
     field: mother_father_married_yes
     datatype: yesnoradio
     required: False
-  - label: "Was the Mother married to another during the conception, gestation or birth of the Child?"
+  - label: Was the Mother married to another during the conception or birth of the Child?
     field: mother_other_married_yes
     datatype: yesnoradio
     required: False
@@ -359,30 +369,35 @@ continue button field: mother_marital_status
 ---
 id: mother_spouse_information
 question: Mother's Spouse Information
-subquestion: |
-  Please provide information about the Mother's spouse if she was married to someone other than the Father during the conception, gestation, or birth of the Minor.
+subquestion: |2
+  Give information about the Mother's spouse if she was or is married to someone other than the Father of the Minor.
 fields:
-  - label: "Full name of Mother's Spouse"
-    field: mothers1_spouse_name_full
-  - label: "Address of Mother's Spouse"
-    field: mothers1_spouse_address
+  - "Full name of mother's spouse": mothers1_spouse_name_full
+  - "Address of mother's spouse": mothers1_spouse_address
 continue button field: mother_spouse_information
 ---
 id: father_information
 question: Father's Information
-subquestion: |
-  Provide details about the Minor's father.
-
-  In Georgia, Minor guardianships require the consent of parents. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.
+subquestion: |2
+  **To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
 fields:
   - code: |
       fathers[0].name_fields()
   - code: |
-      fathers[0].address_fields(
-          country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE
-      )
+      fathers[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
+          default_state=AL_DEFAULT_STATE)
 continue button field: father_information
+sets:
+  - "fathers[0].name.first"
+  - "fathers[0].name.last"
+  - "fathers[0].name.middle"
+  - "fathers[0].name.suffix"
+  - "fathers[0].address.address"
+  - "fathers[0].address.city"
+  - "fathers[0].address.zip"
+  - "fathers[0].address.unit"
+  - "fathers[0].address.state"
+  - "fathers[0].address.country"
 ---
 id: father_deceased
 question: Father's Status
@@ -394,15 +409,15 @@ continue button field: father_deceased
 id: father_consent_custody
 question: Father's Consent and Custody
 fields:
-  - label: Has the Father signed a consent for the creation of this temporary guardianship?
+  - label: Has the Father signed a consent for this temporary guardianship?
     field: father_consent_yes
     datatype: yesnoradio
     required: False
-  - label: Is the Father’s address known and listed above?
+  - label: Is the Father’s address known?
     field: father_address_listed_yes
     datatype: yesnoradio
     required: False
-  - label: Have the Father’s rights been terminated via Court Order?
+  - label: Have the Father’s rights been terminated by a Court Order?
     field: fathers_rights_terminated_yes
     datatype: yesnoradio
     required: False
@@ -438,9 +453,7 @@ continue button field: guardianship_details
 id: additional_data
 question: |
   Additional Data
-subquestion: |
-  Provide any additional relevant information. Also, state here all pertinent facts that may govern the method of giving notice to any
-  party and that may determine whether or not a guardian ad litem should be appointed for any party.
+subquestion: "Give any other information you want the court to know about the temporary guardianship."
 fields:
   - label: "Additional information:"
     field: Additional_data
@@ -458,16 +471,16 @@ continue button field: attorney_yes_no
 ---
 id: attorney_information
 question: Attorney Information
-subquestion: "Please provide the attorney information for the petitioner seeking temporary guardianship."
+subquestion: "If an attorney is helping you with this form, fill in their information. "
 fields:
   - code: |
       attorneys[0].name_fields()
   - code: |
       attorneys[0].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
-  - label: "Attorney's phone number"
+  - label: Phone number
     field: "attorneys[0].phone_number"
     required: False
-  - label: "Attorney's State Bar Number"
+  - label: State bar number
     field: attorneys_bar_number
     required: False
 continue button field: attorney_information
@@ -494,12 +507,11 @@ continue button field: attorney_present
 ---
 id: case_information
 question: Case Information
-subquestion: "Please provide the case details, if known. "
 fields:
-  - label: Case Number or Docket Number
+  - label: Case number or Docket number
     field: docket_number
     required: False
-  - label: Trial Court County
+  - label: County where the form is being filed
     field: trial_court_county
     required: False
 continue button field: case_information
