@@ -8,7 +8,7 @@ metadata:
   title: >-
     GPCSF-with-fields (1)
   short title: >-
-    GPCSF-with-fields (1)
+    Georgia Temporary Guardianship Form
   description: |-
     This form is used to request Temporary Letters of Guardianship for a minor. It outlines the necessary steps and requirements to ensure the child's welfare.
   can_I_use_this_form: |
@@ -66,14 +66,13 @@ code: |
   github_repo_name = 'docassemble-Gpcsfwithfields1'
 ---
 template: interview_short_title
-content: |
-  File a Petition for Temporary Guardianship
+content: |2
+  File a Petition for Temporary Guardianship in Georgia
 ---
 code: |
   al_form_type = "starts_case"
 ---
 id: alweaver assemblyline settings
-initial: True
 
 code: |
   # These exact-name variables drive the reusable next-steps DOCX shell and
@@ -86,17 +85,18 @@ code: |
   al_next_steps_help_organization = 'Georgia Probate Court'
   al_next_steps_help_url = 'https://www.gaprobate.gov'
   al_next_steps_generate_qr_code = False
-  al_next_steps_what_happens_next = "After submitting your petition, you will need to wait for the court's decision. Keep track of any hearings or additional requirements set by the court."
-  al_next_steps_what_can_decision_maker_do = 'The decision maker (court) can approve or deny your request for temporary guardianship. If approved, you will receive the necessary court orders.'
-  al_next_steps_what_happens_if_i_win = 'If your petition is granted, you will be appointed as the temporary guardian of the minor. This allows you to make decisions regarding their care and welfare.'
+  al_next_steps_what_happens_next = "After filling out this form, print it out and get it signed in front of a notary. Take your signed form to the court to file. "
+  al_next_steps_what_can_decision_maker_do = "The Court can approve or deny your request for temporary guardianship. "
+  al_next_steps_what_happens_if_i_win = "If your form is approved, you will be named as the temporary guardian of the minor. This allows you to make decisions regarding their care."
+  
 ---
 
 objects:
-  - users: ALPeopleList.using(auto_gather=False)
-  - attorneys: ALPeopleList.using(auto_gather=False)
-  - children: ALPeopleList.using(auto_gather=False)
-  - fathers: ALPeopleList.using(auto_gather=False)
-  - mothers: ALPeopleList.using(auto_gather=False)
+  - users: ALPeopleList
+  - attorneys: "ALPeopleList.using(ask_number=True, target_number=1)"
+  - children: "ALPeopleList.using(ask_number=True, target_number=1)"
+  - fathers: ALPeopleList
+  - mothers: ALPeopleList
 ---
 sections:
   - petitioners: Petitioners 
@@ -106,31 +106,35 @@ sections:
   - review_gpcsfwithfields_1: Review your answers
 ---
 #################### Interview order #####################
-comment: |
-  Controls order and branching logic for questions specific to this form.
-  The interview uses the custom question screens below instead of
-  ALPeopleList.gather(), so AssemblyLine's generic person questions are not
-  triggered a second time.
 id: interview_order_gpcsfwithfields_1
 mandatory: True
 code: |
   al_intro_screen
   gpcsfwithfields_1_intro
+  consent
   nav.set_section('petitioners')
+  i  = 0
   users.appendObject()
-  i = 0
   user_information
-  user_relationship
+  user_address
+  user_phone
   nav.set_section('parties')
   second_guardian_yes_no
   if has_second_guardian:
     users.appendObject()
     second_guardian_information
-  minor_information
-  minor_age
+    second_guardian_address
+    second_guardian_phone
+  child_name
+  child_address
+  child_birthdate
   if minor_age_14_yes:
     minor_selection_form_notice
+  user_relationship
+  mothers.appendObject()
   mother_information
+  mother_address
+  mother_phone
   mother_deceased
   if not mothers1_deceased_yes:
     mother_consent_custody
@@ -156,7 +160,6 @@ code: |
   set_progress(75)
   if not defined('people_lists_built'):
     children.appendObject()
-    mothers.appendObject()
     fathers.appendObject()
     attorneys.appendObject()
     users.gathered = True
@@ -166,124 +169,167 @@ code: |
     attorneys.gathered = True
     people_lists_built = True
   set_progress(88)
-  if notary_present:
-    if has_attorney:
-      attorney_present
-    signature_date
+  if has_attorney:
+    attorney_present
   store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
   gpcsfwithfields_1_preview_question
-  if notary_present:
-    basic_questions_signature_flow
   set_progress(100)
   gpcsfwithfields_1_download
   
 ---
 id: GPCSF with fields 1 intro
-question: Petition For Temporary Letters of Guardianship of Minor
-subquestion: |2
-  **To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
+question: "Petition For Temporary Letters of Guardianship of Minor in Georgia"
+subquestion: |2+
+  ## What is this form?
+  You can use this form if you need to temporarily care for a child and have the consent of the child's parents. If a parent is not giving their consent, the court will not process this form. 
+  
+  ## Who should be filling out this form?
+  - This form should be filled out by the person who wants to be the temporary guardian of the child. 
   
   ### To fill in the form:
-  - You'll need information about the minor and their parents.
-  - Make sure you have the required documents, like the minor's birth certificate, parent's death certificate, or any court orders about custody.
+  - You'll need information about the child and their parents.
+  - If you have any additional documents (like a custody order or parent's death certificate), you can include a copy of them with the form. 
   
   ### When you are finished
+  - Check your answers and print this form.
+  - You must sign this form in front of a notary.
   - File the completed form with the Probate Court in the county where you live.
-  - Make sure that all parties are notified as required by law.
+  - Keep a copy for yourself. 
   
-  You can use this form if you need to temporarily care for a minor and have the necessary legal relationship with them. Make sure to notify the parents of the minor as required.
+  
 continue button field: gpcsfwithfields_1_intro
 ---
+id: Consent
+question: "Before you fill out this form:"
+subquestion: |2-
+  **To file this form, you must have consent of the parent(s) of the minor.**
+  
+  If a parent is not willing to sign consent for you to become the child's temporary guardian, then the court will not accept the form.
+
+continue button field: consent
+---
+---
 id: user_information
-question: Temporary Guardian Information
-subquestion: "Fill in your information."
+question: What is your name?
 fields:
   - code: |
       users[i].name_fields()
-  - code: |
-      users[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
-  - County: "users[i].address.county"
-  - Phone number: "users[i].phone_number"
 continue button field: user_information
+subquestion: "Fill in your information if you are the person who wants temporary guardianship of the child. "
 sets:
   - "users[i].name.first"
   - "users[i].name.last"
   - "users[i].name.middle"
   - "users[i].name.suffix"
+---
+id: user_address
+question: |2
+  What is your address?
+fields:
+  - code: |
+      users[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
+sets:
   - "users[i].address.address"
   - "users[i].address.city"
   - "users[i].address.zip"
   - "users[i].address.unit"
   - "users[i].address.state"
   - "users[i].address.country"
+continue button field: user_address
 ---
-id: user_relationship
-question: Relationship to the Minor
+id: user phone number
+question: |2
+  What is your phone number?
 fields:
-  - "What is your relationship to the Minor?": users1_relationship_to_minor
-continue button field: user_relationship
+  - Phone: "users[i].phone_number"
+    datatype: al_international_phone
+continue button field: user_phone
 ---
 id: second_guardian_yes_no
-question: Is there a second temporary guardian?
+question: "Is there a second temporary guardian?"
 fields:
   - Is there a second temporary guardian?: has_second_guardian
     datatype: yesnoradio
 continue button field: second_guardian_yes_no
 ---
 id: second_guardian_information
-question: Second Temporary Guardian
-subquestion: "If a second person is being added as a temporary guardian of the minor, fill in their information here."
-fields:
-  - code: |
-      users[1].name_fields()
-  - code: |
-      users[1].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
-  - County: "users[1].address.county"
-  - Phone number: "users[1].phone_number"
-continue button field: second_guardian_information
 sets:
   - "users[1].name.first"
   - "users[1].name.last"
   - "users[1].name.middle"
   - "users[1].name.suffix"
-  - "users[1].address.address"
-  - "users[1].address.city"
-  - "users[1].address.zip"
-  - "users[1].address.unit"
-  - "users[1].address.state"
-  - "users[1].address.country"
----
-id: minor_information
-question: Minor's Information
-subquestion: "Give details about the Minor. If you are filing for temporary guardianship for more than one minor, you must fill out a separate form for each. "
+question: |2
+  What is the name of the person being added as a second temporary guardian?
 fields:
   - code: |
-      children[0].name_fields()
-  - code: |
-      children[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE)
-  - County: "children[0].address.county"
-  - Date of Birth: "children[0].birthdate"
-    datatype: BirthDate
-continue button field: minor_information
+      users[1].name_fields()
+continue button field: second_guardian_information
+---
+id: second_guardian_address
 sets:
-  - "children[0].name.first"
-  - "children[0].name.last"
-  - "children[0].name.middle"
-  - "children[0].name.suffix"
-  - "children[0].address.address"
-  - "children[0].address.city"
-  - "children[0].address.zip"
-  - "children[0].address.unit"
-  - "children[0].address.state"
-  - "children[0].address.country"
----
-id: minor_age
-question: Minor's Age
+  - "users[1].address.address.address"
+  - "users[1].address.address.city"
+  - "users[1].address.address.zip"
+  - "users[1].address.address.unit"
+  - "users[1].address.address.state"
+  - "users[1].address.address.country"
+question: |2+
+  What is ${ users[1] }'s address?
+  
 fields:
-  - "Is the Minor 14 or older at the time of filing?": minor_age_14_yes
-    datatype: yesnoradio
-continue button field: minor_age
+  - code: |
+      users[1].address.address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
+continue button field: second_guardian_address
+---
+id: second_guardian_phone
+question: |2
+  What is ${ users[1] }'s phone number?
+fields:
+  - Phone number: "users[1].mobile_number"
+    datatype: al_international_phone
+continue button field: second_guardian_phone
+---
+id: child_name
+sets:
+  - children[i].name.first
+  - children[i].name.last
+  - children[i].name.middle
+  - children[i].name.suffix
+question: "Child's Name"
+fields:
+  - code: |
+      children[i].name_fields()
+subquestion: "**If you are filing a form for more than one child, you will need to complete a form for each child separately.**"
+continue button field: child_name
+---
+id: child_address
+sets:
+  - "children[i].address.address"
+  - "children[i].address.city"
+  - "children[i].address.zip"
+  - "children[i].address.unit"
+  - "children[i].address.state"
+  - "children[i].address.country"
+question: |2
+  What is ${ children[i].possessive('address') }?
+fields:
+  - code: |
+      children[i].address_fields(country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE)
+continue button field: child_address
+---
+id: child_birthdate
+question: |2
+  When was ${ children[i] } born?
+fields:
+  - Birthdate: "children[i].birthdate"
+    datatype: BirthDate
+    alDayLabel: "${ word('Day') }"
+    alMonthLabel: "${ word('Month') }"
+    alYearLabel: "${ word('Year') }"
+continue button field: child_birthdate
+---
+code: |
+  minor_age_14_yes = children[0].age_in_years() >= 14
 ---
 id: minor_selection_form_notice
 question: Minor Selection Form
@@ -291,47 +337,79 @@ subquestion: |2
   Because the Minor is 14 years of age or older, a Minor Selection Form can be included with the filing. A Minor selection form gives the minor the chance to "select" the temporary guardian of their choice. This form can be found on the probate court's website but *it is not required to file the petition*. 
 continue button field: minor_selection_form_notice
 ---
+id: user_relationship
+question: "Relationship to ${ children[i] } "
+fields:
+  - "What is your relationship to the child? ": users1_relationship_to_minor
+continue button field: user_relationship
+---
 id: mother_information
-question: Mother's Information
-subquestion: "**To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**"
+question: "What is the name of  ${ children[i] }'s mother?"
 fields:
   - code: |
-      mothers[0].name_fields()
-  - code: |
-      mothers[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE)
+      mothers[i].name_fields()
 continue button field: mother_information
 sets:
-  - "mothers[0].name.first"
-  - "mothers[0].name.last"
-  - "mothers[0].name.middle"
-  - "mothers[0].name.suffix"
-  - "mothers[0].address.address"
-  - "mothers[0].address.city"
-  - "mothers[0].address.zip"
-  - "mothers[0].address.unit"
-  - "mothers[0].address.state"
-  - "mothers[0].address.country"
+  - "mothers[i].name.first"
+  - "mothers[i].name.last"
+---
+id: mother_address
+sets:
+  - "mothers[i].address.address"
+  - "mothers[i].address.unit"
+  - "mothers[i].address.city"
+  - "mothers[i].address.state"
+  - "mothers[i].address.zip"
+  - "mothers[i].address.country"
+question: |
+  What is ${ mothers[i].possessive('address') }?
+subquestion: |
+  If you do not know the mother's address, check the box below.
+  You may leave all address fields blank.
+fields:
+  - Street address: mothers[i].address.address
+    required: False
+  - Apartment or unit: mothers[i].address.unit
+    required: False
+  - City: mothers[i].address.city
+    required: False
+  - State: mothers[i].address.state
+    code: |
+      states_list()
+    default: AL_DEFAULT_STATE
+    required: False
+  - ZIP code: mothers[i].address.zip
+    required: False
+  - label: Mother's address is unknown
+    field: motherss1_address_listed_no
+    datatype: yesno
+    required: False
+continue button field: mother_address
+---
+id: mother_phone
+question: |
+  What is ${ mothers[i] }'s phone number?
+fields:
+  - Phone: "mothers[i].phone_number"
+    datatype: al_international_phone
+continue button field: mother_phone
 ---
 id: mother_deceased
-question: Mother's Status
+question: "${ mothers[i] }'s Status"
 fields:
-  - "Is the Minor's mother deceased?": mothers1_deceased_yes
+  - "Is ${ mothers[i] } deceased?": mothers1_deceased_yes
     datatype: yesnoradio
 continue button field: mother_deceased
 ---
 id: mother_consent_custody
 question: Mother's Consent and Custody
 fields:
-  - label: Has the Mother signed a consent for this temporary guardianship?
+  - label: "Has ${ mothers[i] } signed a consent for this temporary guardianship?"
     field: mothers1_signed_consent_yes
     datatype: yesnoradio
     required: False
-  - label: Is the Mother’s address known?
-    field: motherss1_address_listed_yes
-    datatype: yesnoradio
-    required: False
-  - label: Have the Mother’s rights been terminated by Court Order?
+    under text: "If you dont have a signed consent form yet, print one on the court's website."
+  - label: "Have ${ mothers[i] }'s rights been terminated by Court Order?"
     field: mothers1_rights_terminated_yes
     datatype: yesnoradio
     required: False
@@ -340,84 +418,91 @@ continue button field: mother_consent_custody
 id: mother_legal_custody
 question: Mother's Legal Custody
 fields:
-  - label: Has the Mother lost custody via Court Order?
+  - label: "Has ${ mothers[i] } lost custody via Court Order?"
     field: mother_lost_custody_yes
     datatype: yesnoradio
     required: False
-  - label: Does the Mother have joint legal custody via Court Order?
+  - label: "Does ${ mothers[i] } have joint legal custody via Court Order?"
     field: mother_joint_custody_yes
     datatype: yesnoradio
     required: False
-  - label: Does the Mother have sole legal custody via Court Order?
+
+  - label: "Does ${ mothers[i] } have sole legal custody via Court Order?"
     field: mother_sole_custody_yes
     datatype: yesnoradio
     required: False
+
 continue button field: mother_legal_custody
 ---
 id: mother_marital_status
 question: Mother's Marital Status
 fields:
-  - label: Was the Mother married to the Father of the child during or after the conception of the Child?
+  - label: "Was ${ mothers[i] } married to the Father of the child during or after the conception of the Child?"
     field: mother_father_married_yes
     datatype: yesnoradio
     required: False
-  - label: Was the Mother married to another during the conception or birth of the Child?
+  - label: "Was ${ mothers[i] } married to someone else during the conception or birth of the Child?"
     field: mother_other_married_yes
     datatype: yesnoradio
     required: False
 continue button field: mother_marital_status
 ---
 id: mother_spouse_information
-question: Mother's Spouse Information
+question: "${ mothers[i] }'s Spouse Information"
 subquestion: |2
-  Give information about the Mother's spouse if she was or is married to someone other than the Father of the Minor.
+  If ${ mothers[i] } was married to someone other than the Father of the child during the birth of child, fill in their information here. 
 fields:
-  - "Full name of mother's spouse": mothers1_spouse_name_full
-  - "Address of mother's spouse": mothers1_spouse_address
+  - "Full name of ${ mothers[i] }'s spouse": mothers1_spouse_name_full
+  - "Address of ${ mothers[i] }'s spouse": mothers1_spouse_address
 continue button field: mother_spouse_information
 ---
 id: father_information
-question: Father's Information
-subquestion: |2
-  **To file this form, you must have consent of the parents of the minor. If a parent is not willing to sign consent for the petitioner to become the Guardian of their child, then the Guardianship Petition cannot be processed.**
+question: "What is the name of  ${ children[i] }'s father?"
 fields:
   - code: |
-      fathers[0].name_fields()
-  - code: |
-      fathers[0].address_fields(country_code=AL_DEFAULT_COUNTRY,
-          default_state=AL_DEFAULT_STATE)
+      fathers[i].name_fields()
 continue button field: father_information
 sets:
-  - "fathers[0].name.first"
-  - "fathers[0].name.last"
-  - "fathers[0].name.middle"
-  - "fathers[0].name.suffix"
-  - "fathers[0].address.address"
-  - "fathers[0].address.city"
-  - "fathers[0].address.zip"
-  - "fathers[0].address.unit"
-  - "fathers[0].address.state"
-  - "fathers[0].address.country"
+  - "fathers[i].name.first"
+  - "fathers[i].name.last"
+  - "fathers[i].name.middle"
+  - "fathers[i].name.suffix"
+---
+id: father address
+sets:
+  - fathers[i].address.address
+  - fathers[i].address.city
+  - fathers[i].address.state
+  - fathers[i].address.zip
+  - fathers[i].address.unit
+  - fathers[i].address.country
+question: |
+  What is ${ fathers[i].possessive('address') }?
+fields:
+  - code: |
+      fathers[i].address_fields(
+          country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE
+      )
 ---
 id: father_deceased
-question: Father's Status
+question: "{ fathers[i] }'s Status"
 fields:
-  - "Is the Minor's Father deceased?": father_deceased_yes
+  - "Is { fathers[i] } deceased?": father_deceased_yes
     datatype: yesnoradio
 continue button field: father_deceased
 ---
 id: father_consent_custody
-question: Father's Consent and Custody
+question: "{ fathers[i] }'s Consent and Custody"
 fields:
-  - label: Has the Father signed a consent for this temporary guardianship?
+  - label: "Has { fathers[i] } signed a consent for this temporary guardianship?"
     field: father_consent_yes
     datatype: yesnoradio
     required: False
-  - label: Is the Father’s address known?
+  - label: "Is the { fathers[i] }’s address known?"
     field: father_address_listed_yes
     datatype: yesnoradio
     required: False
-  - label: Have the Father’s rights been terminated by a Court Order?
+  - label: "Have the { fathers[i]}’s rights been terminated by a Court Order?"
     field: fathers_rights_terminated_yes
     datatype: yesnoradio
     required: False
@@ -426,15 +511,15 @@ continue button field: father_consent_custody
 id: father_legal_custody
 question: Father's Legal Custody
 fields:
-  - label: Has the Father lost custody via Court Order?
+  - label: "Has { fathers[i] } lost custody via Court Order?"
     field: father_lost_custody_yes
     datatype: yesnoradio
     required: False
-  - label: Does the Father have joint legal custody via Court Order?
+  - label: "Does { fathers[i] } have joint legal custody via Court Order?"
     field: father_joint_custody_yes
     datatype: yesnoradio
     required: False
-  - label: Does the Father have sole legal custody via Court Order?
+  - label: "Does { fathers[i] } have sole legal custody via Court Order?"
     field: father_sole_custody_yes
     datatype: yesnoradio
     required: False
@@ -516,14 +601,6 @@ fields:
     required: False
 continue button field: case_information
 ---
-id: notary_present
-question: Notary Presence
-subquestion: "If a Notary is not present, signatures can be added later. "
-fields:
-  - Is a Notary present?: notary_present
-    datatype: yesnoradio
-continue button field: notary_present
----
 # Preview and review are kept separate from the custom interview questions.
 id: preview_gpcsfwithfields_1
 question: |
@@ -568,13 +645,9 @@ review:
   - Edit: users1_address
     button: |
       **User Information**
-
       User name: ${ showifdef('users1_name_full') }
-
       User address: ${ showifdef('users1_address') }
-
       User phone: ${ showifdef('users1_phone') }
-
       Relationship to minor: ${ showifdef('users1_relationship_to_minor') }
   - Edit: children1_birthdate_date
     button: |
@@ -587,11 +660,8 @@ review:
   - Edit: mothers1_address
     button: |
       **Mother's Information**
-
       Mother name: ${ showifdef('mothers1_name_full') }
-
       Mother address: ${ showifdef('mothers1_address') }
-
       Mother deceased: ${ word(yesno(mothers1_deceased_yes)) if defined('mothers1_deceased_yes') else '' }
 
       Mother consent: ${ word(yesno(mothers1_signed_consent_yes)) if defined('mothers1_signed_consent_yes') else '' }
@@ -854,9 +924,8 @@ attachment:
 
       - "mothers1_signed_consent_yes": ${ mothers1_signed_consent_yes }
       - "mothers1_signed_consent_no": ${ not mothers1_signed_consent_yes }
-
-      - "motherss1_address_listed_yes": ${ motherss1_address_listed_yes }
-      - "motherss1_address_listed_no": ${ not motherss1_address_listed_yes }
+      - "motherss1_address_listed_yes": ${ not motherss1_address_listed_no }
+      - "motherss1_address_listed_no": ${ motherss1_address_listed_no }
 
       - "mothers1_rights_terminated_yes": ${ mothers1_rights_terminated_yes }
       - "mothers1_rights_terminated_no": ${ not mothers1_rights_terminated_yes }
