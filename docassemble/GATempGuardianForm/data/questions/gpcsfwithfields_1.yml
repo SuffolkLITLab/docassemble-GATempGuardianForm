@@ -6,7 +6,7 @@ include:
 ---
 metadata:
   title: >-
-    GPCSF-with-fields (1)
+    Georgia Temporary Guardianship Form
   short title: >-
     Georgia Temporary Guardianship Form
   description: |-
@@ -102,7 +102,6 @@ sections:
   - petitioners: Petitioners 
   - parties: Parties (Child, Parents, Attorneys)
   - case_details: Case & Guardianship Details
-  - sign_and_file: Signatures & Filing
   - review_gpcsfwithfields_1: Review your answers
 ---
 #################### Interview order #####################
@@ -125,6 +124,7 @@ code: |
     second_guardian_information
     second_guardian_address
     second_guardian_phone
+  children.appendObject()
   child_name
   child_address
   child_birthdate
@@ -138,15 +138,23 @@ code: |
   mother_deceased
   if not mothers1_deceased_yes:
     mother_consent_custody
-    mother_legal_custody
+    if not mothers1_rights_terminated_yes:
+      mother_legal_custody
+      if mother_lost_custody:
+        mother_sole_custody = True
+        mother_joint_custody = True
   mother_marital_status
   if mother_other_married_yes:
     mother_spouse_information
+  fathers.appendObject()
   father_information
   father_deceased
   if not father_deceased_yes:
     father_consent_custody
     father_legal_custody
+    if father_lost_custody:
+      father_sole_custody = True
+      father_joint_custody = True
   set_progress(50)
   nav.set_section('case_details')
   guardianship_details
@@ -155,13 +163,9 @@ code: |
   if has_attorney:
     attorneys.appendObject()
     attorney_information
-    attorney_present
   case_information
   set_progress(75)
   if not defined('people_lists_built'):
-    children.appendObject()
-    fathers.appendObject()
-    attorneys.appendObject()
     users.gathered = True
     children.gathered = True
     mothers.gathered = True
@@ -169,8 +173,6 @@ code: |
     attorneys.gathered = True
     people_lists_built = True
   set_progress(88)
-  if has_attorney:
-    attorney_present
   store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
   gpcsfwithfields_1_preview_question
   set_progress(100)
@@ -207,7 +209,6 @@ subquestion: |2-
   If a parent is not willing to sign consent for you to become the child's temporary guardian, then the court will not accept the form.
 
 continue button field: consent
----
 ---
 id: user_information
 question: What is your name?
@@ -416,21 +417,23 @@ fields:
 continue button field: mother_consent_custody
 ---
 id: mother_legal_custody
-question: Mother's Legal Custody
+question: "${mothers[i]} Legal Custody"
 fields:
-  - label: "Has ${ mothers[i] } lost custody via Court Order?"
-    field: mother_lost_custody_yes
+  - "Has ${ mothers[i] }  lost custody via Court Order?": mother_lost_custody
     datatype: yesnoradio
-    required: False
   - label: "Does ${ mothers[i] } have joint legal custody via Court Order?"
-    field: mother_joint_custody_yes
+    field: mother_joint_custody
     datatype: yesnoradio
-    required: False
+    show if: 
+      variable: "mother_lost_custody"
+      is: False
 
   - label: "Does ${ mothers[i] } have sole legal custody via Court Order?"
-    field: mother_sole_custody_yes
+    field: mother_sole_custody
     datatype: yesnoradio
-    required: False
+    show if: 
+      variable: "mother_lost_custody"
+      is: False
 
 continue button field: mother_legal_custody
 ---
@@ -445,6 +448,9 @@ fields:
     field: mother_other_married_yes
     datatype: yesnoradio
     required: False
+    show if: 
+      variable: "mother_father_married_yes"
+      is: False
 continue button field: mother_marital_status
 ---
 id: mother_spouse_information
@@ -468,61 +474,83 @@ sets:
   - "fathers[i].name.middle"
   - "fathers[i].name.suffix"
 ---
-id: father address
+id: father_address
 sets:
-  - fathers[i].address.address
-  - fathers[i].address.city
-  - fathers[i].address.state
-  - fathers[i].address.zip
-  - fathers[i].address.unit
-  - fathers[i].address.country
+  - "fathers[i].address.address"
+  - "fathers[i].address.unit"
+  - "fathers[i].address.city"
+  - "fathers[i].address.state"
+  - "fathers[i].address.zip"
+  - "fathers[i].address.country"
 question: |
   What is ${ fathers[i].possessive('address') }?
+subquestion: |
+  If you do not know the father's address, check the box below.
+  You may leave all address fields blank.
 fields:
-  - code: |
-      fathers[i].address_fields(
-          country_code=AL_DEFAULT_COUNTRY, default_state=AL_DEFAULT_STATE
-      )
+  - Street address: fathers[i].address.address
+    required: False
+  - Apartment or unit: fathers[i].address.unit
+    required: False
+  - City: fathers[i].address.city
+    required: False
+  - State: fathers[i].address.state
+    code: |
+      states_list()
+    default: AL_DEFAULT_STATE
+    required: False
+  - ZIP code: fathers[i].address.zip
+    required: False
+  - label: Father's address is unknown
+    field: father_address_listed_no
+    datatype: yesno
+    required: False
+continue button field: father_address
 ---
 id: father_deceased
-question: "{ fathers[i] }'s Status"
+question: "${ fathers[i] }'s Status"
 fields:
-  - "Is { fathers[i] } deceased?": father_deceased_yes
+  - "Is ${ fathers[i] } deceased?": father_deceased_yes
     datatype: yesnoradio
 continue button field: father_deceased
 ---
 id: father_consent_custody
-question: "{ fathers[i] }'s Consent and Custody"
+question: "${ fathers[i] }'s Consent and Custody"
 fields:
-  - label: "Has { fathers[i] } signed a consent for this temporary guardianship?"
+  - label: "Has ${ fathers[i] } signed a consent for this temporary guardianship?"
     field: father_consent_yes
     datatype: yesnoradio
     required: False
-  - label: "Is the { fathers[i] }’s address known?"
-    field: father_address_listed_yes
-    datatype: yesnoradio
-    required: False
-  - label: "Have the { fathers[i]}’s rights been terminated by a Court Order?"
+    under text: "If you dont have a signed consent form yet, print one on the court's website."
+  - label: "Have the ${ fathers[i]}’s rights been terminated by a Court Order?"
     field: fathers_rights_terminated_yes
     datatype: yesnoradio
     required: False
 continue button field: father_consent_custody
 ---
 id: father_legal_custody
-question: Father's Legal Custody
+question: "${ fathers[i] }'s Legal Custody"
 fields:
-  - label: "Has { fathers[i] } lost custody via Court Order?"
-    field: father_lost_custody_yes
+  - label: "Has ${ fathers[i] } lost custody via Court Order?"
+    field: father_lost_custody
     datatype: yesnoradio
     required: False
-  - label: "Does { fathers[i] } have joint legal custody via Court Order?"
-    field: father_joint_custody_yes
+  - label: "Does ${ fathers[i] } have joint legal custody via Court Order?"
+    field: father_joint_custody
     datatype: yesnoradio
     required: False
-  - label: "Does { fathers[i] } have sole legal custody via Court Order?"
-    field: father_sole_custody_yes
+    show if: 
+      variable: "father_lost_custody"
+      is: False
+  
+  - label: "Does ${ fathers[i] } have sole legal custody via Court Order?"
+    field: father_sole_custody
     datatype: yesnoradio
     required: False
+    show if: 
+      variable: "father_lost_custody"
+      is: False
+
 continue button field: father_legal_custody
 ---
 id: guardianship_details
@@ -548,9 +576,9 @@ fields:
 continue button field: additional_data
 ---
 id: attorney_yes_no
-question: "Is an attorney representing the Temporary Guardian?"
+question: "Attorney help"
 fields:
-  - Is an attorney representing the petitioner?: has_attorney
+  - Is there an attorney helping you fill out this form?: has_attorney
     datatype: yesnoradio
 continue button field: attorney_yes_no
 ---
@@ -581,21 +609,9 @@ sets:
   - "attorneys[0].address.state"
   - "attorneys[0].address.country"
 ---
-id: attorney_present
-question: Attorney's Presence
-subquestion: |2
-  If the attorney is not present, their signature can be added at a later time.
-fields:
-  - "Is the attorney present during this interview?": attorney_present_yes
-    datatype: yesnoradio
-continue button field: attorney_present
----
 id: case_information
 question: Case Information
 fields:
-  - label: Case number or Docket number
-    field: docket_number
-    required: False
   - label: County where the form is being filed
     field: trial_court_county
     required: False
@@ -618,18 +634,6 @@ subquestion: |
 continue button field: gpcsfwithfields_1_preview_question
 ---
 code: |
-  signature_fields = []
-
-  if notary_present:
-    signature_fields.append('users[0].signature')
-
-    if has_second_guardian:
-      signature_fields.append('users[1].signature')
-
-    if has_attorney and attorney_present_yes:
-      signature_fields.append('attorneys[0].signature')
----
-code: |
   # This is a placeholder for the addresses that will be searched
   # for matching address to court. Edit if court venue is based on a
   # different address than the user's
@@ -637,74 +641,115 @@ code: |
   addresses_to_search = [user.address for user in users.complete_elements()]
 ---
 id: gpcsfwithfields_1_review_screen
-# The review screen is intentionally based on the custom variables above.
 event: review_gpcsfwithfields_1
 question: |
   Review your answers
 review:
-  - Edit: users1_address
+  - Edit: users.revisit
     button: |
-      **User Information**
-      User name: ${ showifdef('users1_name_full') }
-      User address: ${ showifdef('users1_address') }
-      User phone: ${ showifdef('users1_phone') }
+      **Guardian Information**
+      % for item in users:
+      - ${ item.name_full() if defined("item.name.first") else "Guardian" }
+      % endfor
+
+  - Edit: users1_relationship_to_minor
+    button: |
+      **Relationship to Minor**
       Relationship to minor: ${ showifdef('users1_relationship_to_minor') }
-  - Edit: children1_birthdate_date
+
+  - Edit: children.revisit
     button: |
       **Minor's Information**
-      Minor name: ${ showifdef('children1_name_full') }
-      Child birthdate: ${ showifdef('children1_birthdate_date') }
-      Child address: ${ showifdef('children1_address') }
-      Child county: ${ showifdef('children1_address_county') }
-      Age at filing: ${ children[0].age_in_years() }
-  - Edit: mothers1_address
+      % for item in children:
+      - ${ item.name_full() if defined("item.name.first") else "Minor" }
+      % endfor
+
+  - Edit: mothers.revisit
     button: |
       **Mother's Information**
-      Mother name: ${ showifdef('mothers1_name_full') }
-      Mother address: ${ showifdef('mothers1_address') }
+      % for item in mothers:
+      - ${ item.name_full() if defined("item.name.first") else "Mother" }
+      % endfor
+
+  - Edit: mothers1_deceased_yes
+    button: |
+      **Mother's Status**
       Mother deceased: ${ word(yesno(mothers1_deceased_yes)) if defined('mothers1_deceased_yes') else '' }
 
+  - Edit: mothers1_signed_consent_yes
+    button: |
+      **Mother's Consent**
       Mother consent: ${ word(yesno(mothers1_signed_consent_yes)) if defined('mothers1_signed_consent_yes') else '' }
-  - Edit: fathers1_address
+
+  - Edit: fathers.revisit
     button: |
       **Father's Information**
+      % for item in fathers:
+      - ${ item.name_full() if defined("item.name.first") else "Father" }
+      % endfor
 
-      Father name: ${ showifdef('fathers1_name_full') }
-
-      Father address: ${ showifdef('fathers1_address') }
-
+  - Edit: father_deceased_yes
+    button: |
+      **Father's Status**
       Father deceased: ${ word(yesno(father_deceased_yes)) if defined('father_deceased_yes') else '' }
 
+  - Edit: father_consent_yes
+    button: |
+      **Father's Consent**
       Father consent: ${ word(yesno(father_consent_yes)) if defined('father_consent_yes') else '' }
+
   - Edit: guardianship_reason
     button: |
       **Guardianship Details**
-
       Reason for guardianship: ${ single_paragraph(guardianship_reason) if defined('guardianship_reason') else '' }
+
   - Edit: Additional_data
     button: |
       **Additional Data**
+      Additional information: ${ single_paragraph(Additional_data) if defined('Additional_data') else '' }
 
-      Additional data provided: ${ single_paragraph(Additional_data) if defined('Additional_data') else '' }
-  - Edit: attorneys_address
+  - Edit: attorneys.revisit
     button: |
       **Attorney Information**
+      % for item in attorneys:
+      - ${ item.name_full() if defined("item.name.first") else "Attorney" }
+      % endfor
 
-      Attorney name: ${ showifdef('attorneys_name') }
+  - Edit: attorneys_bar_number
+    button: |
+      **Attorney Bar Number**
+      Bar number: ${ showifdef('attorneys_bar_number') }
 
-      Attorney address: ${ showifdef('attorneys_address') }
-
-      Attorney phone: ${ showifdef('attorneys_phone_number') }
-
-      Attorney bar number: ${ showifdef('attorneys_bar_number') }
-  - Edit: docket_number
+  - Edit: trial_court_county
     button: |
       **Case Information**
-
-      Docket number: ${ showifdef('docket_number') }
-
       Trial court county: ${ showifdef('trial_court_county') }
 ---
+id: edit_users
+continue button field: users.revisit
+question: |
+  Edit guardian information
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name_full() if defined("row_item.name.first") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+edit:
+  - name.first
+  - address.address
+  - phone_number
+confirm: True
+---
+
 id: edit_children
 continue button field: children.revisit
 question: |
@@ -796,8 +841,8 @@ id: download_gpcsfwithfields_1
 event: gpcsfwithfields_1_download
 question: |
   All done
-subquestion: |
-  Thank you ${users[0].name}. Your form is ready to download and deliver.
+subquestion: |2
+  Thank you ${users[0].name}. Your form is ready to download and print.
   
   Use the options on this page to view, download and send your form. Use the
   "Edit answers" button to fix any mistakes.
@@ -854,71 +899,32 @@ attachment:
   pdf template file: GPCSF-with-fields_1.pdf
   fields:
       - "trial_court_county": ${ trial_court_county }
-      - "trial_court_county__1": ${ trial_court_county }
-      - "trial_court_county__2": ${ trial_court_county }
-      - "trial_court_county__3": ${ trial_court_county }
-      - "trial_court_county__5": ${ trial_court_county }
-      - "trial_court_county__6": ${ trial_court_county }
-      - "trial_court_county__8": ${ trial_court_county }
-      - "trial_court_county__1": ${ trial_court_county }
-      - "trial_court_county__3": ${ trial_court_county }
-      - "trial_court_county__4": ${ trial_court_county }
-      - "trial_court_county__9": ${ trial_court_county }
-      - "trial_court_county__10": ${ trial_court_county }
-      - "trial_court_county__11": ${ trial_court_county }
-      - "trial_court_county__2": ${ trial_court_county }
-      - "trial_court_county__7": ${ trial_court_county }
-      - "trial_court_county__12": ${ trial_court_county }
-      - "trial_court_county__13": ${ trial_court_county }
+      - "trial_court_county_1": ${ trial_court_county }
+
       - "children1_name_full": ${ children[0] }
-      - "children1_name_full__1": ${ children[0] }
-      - "children1_name_full__3": ${ children[0] }
-      - "children1_name_full__4": ${ children[0] }
-      - "children1_name_full__5": ${ children[0] }
-      - "children1_name_full__2": ${ children[0] }
-      - "children1_name_full__10": ${ children[0] }
-      - "children1_name_full__11": ${ children[0] }
-      - "children1_name_full__12": ${ children[0] }
-      - "children1_name_full__13": ${ children[0] }
-      - "children1_name_full__14": ${ children[0] }
-      - "children1_name_full__6": ${ children[0] }
-      - "children1_name_full__7": ${ children[0] }
-      - "children1_name_full__8": ${ children[0] }
-      - "children1_name_last__1": ${ children[0].name.last }
+      - "children1_name_last": ${ children[0].name.last }
       - "docket_number": ${ docket_number }
-      - "docket_number__11": ${ docket_number }
-      - "docket_number__15": ${ docket_number }
-      - "docket_number__17": ${ docket_number }
-      - "docket_number__5": ${ docket_number }
-      - "docket_number__6": ${ docket_number }
-      - "docket_number__1": ${ docket_number }
-      - "docket_number__2": ${ docket_number }
-      - "docket_number__3": ${ docket_number }
-      - "docket_number__4": ${ docket_number }
-      - "docket_number__13": ${ docket_number }
-      - "docket_number__14": ${ docket_number }
+
       - "users1_name_full": ${ users[0] }
-      - "users1_name_full__1": ${ users[0] }
-      - "users1_name_full__2": ${ users[0] }
-      - "users1_name_full__3": ${ users[0] }
-      - "users1_name_full__4": ${ users[0] }
-      - "users1_name_full__5": ${ users[0] }
-      - "users1_name_full__6": ${ users[0] }
-      - "users1_name_full__7": ${ users[0] }
+      - "users1_name_full_1": ${ users[0] }
+      - "users1_name_full_2": ${ users[0] }
+
       - "users1_address_county": ${ users[0].address.county }
       - "users1_address": ${ users[0].address }
+      - "users1_address_line_one": ${ users[0].address.line_one() }
+      - "users1_address_line_two": ${ users[0].address.line_two() }
+      - "users1_phone_number": ${ users[0].phone_number }
+        
       - "children1_address": ${ children[0].address }
-      - "children1_address__1": ${ children[0].address }
+      - "children1_address_1": ${ children[0].address }
       - "children1_age": ${ children[0].age_in_years() }
-      - "children1_birthdate_date": ${ children[0].birthdate }
+      - "children1_birthdate": ${ children[0].birthdate }
       - "users1_relationship_to_minor": ${ users1_relationship_to_minor }
       - "minor_age_14_yes": ${ minor_age_14_yes }
-      - "minor_age_14_no": ${ not minor_age_14_yes }        
+      - "minor_age_14_no": ${ not minor_age_14_yes } 
+      
       - "mothers1_name_full": ${ mothers[0] }
-      - "mothers1_name_full__1": ${ mothers[0] }
-      - "mothers1_name_full__2": ${ mothers[0] }
       - "mothers1_address": ${ mothers[0].address }
-      - "mothers1_address__1": ${ mothers[0].address }
       - "mothers1_deceased_yes": ${ mothers1_deceased_yes }
       - "mothers1_deceased_no": ${ not mothers1_deceased_yes }
 
@@ -930,14 +936,14 @@ attachment:
       - "mothers1_rights_terminated_yes": ${ mothers1_rights_terminated_yes }
       - "mothers1_rights_terminated_no": ${ not mothers1_rights_terminated_yes }
 
-      - "mother_lost_custody_yes": ${ mother_lost_custody_yes }
-      - "mother_lost_custody_no": ${ not mother_lost_custody_yes }
+      - "mother_lost_custody_yes": ${ mother_lost_custody }
+      - "mother_lost_custody_no": ${ not mother_lost_custody }
 
-      - "mother_joint_custody_yes": ${ mother_joint_custody_yes }
-      - "mother_joint_custody_no": ${ not mother_joint_custody_yes }
+      - "mother_joint_custody_yes": ${ mother_joint_custody }
+      - "mother_joint_custody_no": ${ not mother_joint_custody }
 
-      - "mother_sole_custody_yes": ${ mother_sole_custody_yes }
-      - "mother_sole_custody_no": ${ not mother_sole_custody_yes }
+      - "mother_sole_custody_yes": ${ mother_sole_custody }
+      - "mother_sole_custody_no": ${ not mother_sole_custody }
 
       - "mother_father_married_yes": ${ mother_father_married_yes }
       - "mother_father_married_no": ${ not mother_father_married_yes }
@@ -946,9 +952,8 @@ attachment:
       - "mother_other_married_no": ${ not mother_other_married_yes }
       - "mothers1_spouse_name_full": ${ mothers1_spouse_name_full }
       - "mothers1_spouse_address": ${ mothers1_spouse_address }
+        
       - "fathers1_name_full": ${ fathers[0] }
-      - "fathers1_name_full__1": ${ fathers[0] }
-      - "fathers1_name_full__2": ${ fathers[0] }
       - "fathers1_address": ${ fathers[0].address }
       - "father_deceased_yes": ${ father_deceased_yes }
       - "father_deceased_no": ${ not father_deceased_yes }
@@ -962,56 +967,31 @@ attachment:
       - "fathers_rights_terminated_yes": ${ fathers_rights_terminated_yes }
       - "fathers_rights_terminated_no": ${ not fathers_rights_terminated_yes }
 
-      - "father_lost_custody_yes": ${ father_lost_custody_yes }
-      - "father_lost_custody_no": ${ not father_lost_custody_yes }
+      - "father_lost_custody_yes": ${ father_lost_custody }
+      - "father_lost_custody_no": ${ not father_lost_custody }
 
-      - "father_joint_custody_yes": ${ father_joint_custody_yes }
-      - "father_joint_custody_no": ${ not father_joint_custody_yes }
+      - "father_joint_custody_yes": ${ father_joint_custody }
+      - "father_joint_custody_no": ${ not father_joint_custody }
 
-      - "father_sole_custody_yes": ${ father_sole_custody_yes }
-      - "father_sole_custody_no": ${ not father_sole_custody_yes }
+      - "father_sole_custody_yes": ${ father_sole_custody }
+      - "father_sole_custody_no": ${ not father_sole_custody }
       
       - "guardianship_reason": ${ guardianship_reason }
       - "additional_data": ${ (Additional_data) }
+        
       - "users1_signature__2": ${ users[0].signature_if_final(i) }
       - "users1_signature__1": ${ users[0].signature_if_final(i) }
       - "users1_signature_1": ${ users[0].signature_if_final(i) }
       - "users1_signature": ${ users[0].signature_if_final(i) }
       - "other_parties1_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
       - "other_parties1_name_full": ${ users[1] if len(users) > 1 else '' }
-      - "other_parties1_name_full__1": ${ users[1] if len(users) > 1 else '' }
-      - "users1_address_line_one": ${ users[0].address.line_one() }
       - "other_parties1_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
-      - "users1_address_line_two": ${ users[0].address.line_two() }
       - "other_parties1_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
       - "other_parties1_signature__1": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
-      - "users1_phone_number": ${ users[0].phone_number }
       - "other_parties1_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
       - "attorneys_address": ${ attorneys[0].address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
       - "attorneys_bar_number": ${ attorneys_bar_number }
-      - "attorneys_signature": ${ attorneys[0].signature_if_final(i) if has_attorney and attorney_present_yes else '' }
-      - "children1_address_county": ${ children[0].address.county }
-      - "children1_signature": ${ children[0].signature_if_final(i) }
-      - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
-      - "fathers1_signature": ${ fathers[0].signature_if_final(i) }
-      - "trial_court_county__3": ${ trial_court_county }
-      - "children1_name_last__3": ${ children[0].name.last }
-      - "docket_number__3": ${ docket_number }
-      - "fathers1_address__1": ${ fathers[0].address }
-      - "users1_name_full__5": ${ users[0] }
-      - "other_parties1_name_full__3": ${ users[1] if len(users) > 1 else '' }
-      - "fathers1_signature": ${ fathers[0].signature_if_final(i) }
-      - "trial_court_county__2": ${ trial_court_county }
-      - "children1_name_last__2": ${ children[0].name.last }
-      - "docket_number__2": ${ docket_number }
-      - "users1_name_full__4": ${ users[0] }
-      - "other_parties1_name_full__2": ${ users[1] if len(users) > 1 else '' }
-      - "mothers1_signature": ${ mothers[0].signature_if_final(i) }
-      - "trial_court_county_1": ${ trial_court_county }
-      - "children1_name_last__1": ${ children[0].name.last }
-      - "docket_number__1": ${ docket_number }
-      - "children1_address_county": ${ children[0].address.county }
-      - "users1_name_full__3": ${ users[0] }     
-      - "children1_name_last": ${ children[0].name.last }
+
+---
