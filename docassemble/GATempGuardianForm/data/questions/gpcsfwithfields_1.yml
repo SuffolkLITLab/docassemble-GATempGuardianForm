@@ -110,7 +110,14 @@ mandatory: True
 code: |
   al_intro_screen
   gpcsfwithfields_1_intro
-  consent
+  parent_signed_consent
+  if not parent_signed_consent_yes:
+    parent_consent_scenario
+    if parent_consent_scenario == 'scenario_2':
+      message(
+        "You cannot continue with this form.",
+        "This form is only for situations where the parent agrees to the guardianship. If a parent actively disagrees and objects to the petition, the Probate Court process described here is not appropriate. If the child is unsafe, you may need to seek help through Juvenile Court."
+      )
   nav.set_section('petitioners')
   i  = 0
   users.appendObject()
@@ -134,10 +141,9 @@ code: |
   user_relationship
   mothers.appendObject()
   mother_information
-  mother_address
-  mother_phone
   mother_deceased
   if not mothers1_deceased_yes:
+    mother_address
     mother_consent_custody
     mother_legal_custody
     if mother_lost_custody:
@@ -148,9 +154,9 @@ code: |
     mother_spouse_information
   fathers.appendObject()
   father_information
-  father_address
   father_deceased
   if not father_deceased_yes:
+    father_address
     father_consent_custody
     father_legal_custody
     if father_lost_custody:
@@ -182,39 +188,65 @@ code: |
   set_progress(88)
   store_variables_snapshot( persistent=True, data={ "zip": showifdef("users[0].address.zip"), "reached_interview_end": True, }, )
   gpcsfwithfields_1_preview_question
-  basic_questions_signature_flow
   set_progress(100)
   gpcsfwithfields_1_download
   
 ---
 id: GPCSF with fields 1 intro
 question: "Petition For Temporary Letters of Guardianship of Minor in Georgia"
-subquestion: |2+
+subquestion: |2
   ## What is this form?
   - Use this form to ask the court to name you as a child's temporary guardian. The child's parents must agree to the guardianship. If a parent does not agree, the court will not accept this petition.
   
   ## Who should be filling out this form?
   - This form is for the person who wants to become the child's temporary guardian.
-  
+    
+  ## Why would I use this form? 
+  - You would use this form to legally step in and care for a child when their parents are temporarily unable to care for them, but the parents are still willing to cooperate or retain their parental rights.
+  - This form could be used for medical decisions, school enrollment, if a parent becomes sick, or making everyday life decisions for the child. 
+    
   ### To fill in the form:
   - Have information about the child and both parents ready.
   - You may include copies of other documents, such as a custody order or a parent's death certificate. If you don't have copies of other documents, you can still file this form without them.
   
   ### When you are finished
   - Review your answers, then print the form.
+  - Sign the form in front of the Clerk at the courthouse.
   - File the form with the Probate Court in your county.
   - Keep a copy for yourself. 
-  
-  
 continue button field: gpcsfwithfields_1_intro
 ---
-id: Consent
-question: "Before you fill out this form:"
-subquestion: |2-
-  **To file this form, you must have consent of the parent(s) of the minor.**
+id: parent_signed_consent
+question: Do You Have the Parent's Signed Consent?
+subquestion: |2
+  Before continuing, tell us whether you have the parent's signed consent for the temporary guardianship.
   
-  The child's parents must agree to the temporary guardianship. If a parent does not agree, the court will not accept this petition.
-continue button field: consent
+  If the parent is agreeing to the guardianship but has not signed yet, you can still continue with this form.
+fields:
+  - Do you have the parent's signed consent?: parent_signed_consent_yes
+    datatype: yesnoradio
+    required: True
+continue button field: parent_signed_consent
+---
+id: parent_consent_scenario
+question: Why Don't You Have the Parent's Signed Consent?
+subquestion: |2-
+  There are a few reasons why the parent may not have signed a consent form yet. 
+  
+  * The parent agrees but hasn't signed yet. If the parent is okay with the guardianship but just hasn't filled out the form, you can still turn it in. The court will send them an official letter giving them a deadline to sign.
+  
+  * The parent refuses to sign because they disagree. If a parent actively fights your petition and tells the court "No," the probate court is required by law to stop your case and say no to you. This specific form is only for situations where parents agree. If they fight you and the child is unsafe, you would have to go to a different court (Juvenile Court) to ask for help.
+  
+  * The parent is missing. If you cannot find the parent, you must tell the court. The court will try to look for them. They might send a police deputy to their last known house, or they will print a notice in the local newspaper for a few weeks. If the parent doesn't show up or answer the newspaper notice by the court's deadline, the judge can go ahead and grant you the guardianship.
+fields:
+  - What is happening with the parent?: parent_consent_scenario
+    datatype: radio
+    choices:
+      - Parent agrees but has not signed yet: scenario_1
+      - Parent refuses to sign because they disagree: scenario_2
+      - Parent is missing and cannot be found: scenario_3
+    required: True
+continue button field: parent_consent_scenario
 ---
 id: user_information
 question: What is your name?
@@ -342,12 +374,11 @@ code: |
   minor_age_14_yes = children[0].age_in_years() >= 14
 ---
 id: minor_selection_form_notice
-question: "Minor selection form or Choosing a temporary guardian"
-subquestion: |2+
-  Because the child is 14 or older, you can add a Minor Selection Form with your petition. This form lets the child name the temporary guardian they choose. 
+question: "Minor selection form "
+subquestion: |2
+  Because the child is 14 or older, they are expected to fill out a "Minor Selection Form". This form is the teenager’s official way to tell the judge, "This is the adult I want to live with and take care of me."
   
-  You do not have to include this form.
-  
+  If they dont fill out the form, the court will want to know why, so write that information into the "Other Information" section later in this form. 
 continue button field: minor_selection_form_notice
 ---
 id: user_relationship
@@ -401,14 +432,6 @@ fields:
     datatype: yesno
     required: False
 continue button field: mother_address
----
-id: mother_phone
-question: |
-  What is ${ mothers[i] }'s phone number?
-fields:
-  - Phone: "mothers[i].phone_number"
-    datatype: al_international_phone
-continue button field: mother_phone
 ---
 id: mother_deceased
 question: "${ mothers[i] }'s Status"
@@ -572,16 +595,32 @@ continue button field: father_legal_custody
 id: guardianship_details
 question: "Explain why you are asking to become the child's temporary guardian."
 fields:
-  - label: Why you need to be a temporary guardian
+  - label: Why do you need to be a temporary guardian?
     field: guardianship_reason
     datatype: area
     input type: area
 continue button field: guardianship_details
+subquestion: |2-
+  For example, this form could be used for:
+  * Medical decisions
+  * Enrolling a child in school
+  * A parent is too sick to make decisions for the child
+  * The parent needs help making decision for the child for some other reason
+
 ---
 id: additional_data
 question: |2
   Other Information
-subquestion: "Is there anything else you want the court to know?"
+subquestion: |2-
+  **You can use this section to:**
+  
+  - Explain any missing information: If you left a part of the form blank for any reason, you can explain why here. 
+  
+  - Give other details about the parent: For example, if a parent is in prison, living in a shelter, or deployed overseas, you can use this section to let the court know that. 
+  
+  - Sometimes, the judge needs to appoint a special, independent lawyer to speak up for a child or a parent. This is called a Guardian ad Litem. Use this section to let the Judge know if anyone needs that extra help.
+  
+  - If the child is over 14 and did not fill out a "Minor Selection Form", use this spot to tell the judge why.
 fields:
   - label: Other information (optional)
     field: Additional_data
@@ -676,19 +715,6 @@ code: |
   # different address than the user's
   [user.address.address for user in users.complete_elements()]
   addresses_to_search = [user.address for user in users.complete_elements()]
----
-
-code: |
-  signature_fields = [
-    'users[0].signature'
-  ]
-
-  if has_second_guardian:
-    signature_fields.append('users[1].signature')
-
-  if has_attorney:
-    signature_fields.append("attorneys[0].signature")
-  
 ---
 
 id: gpcsfwithfields_1_review_screen
@@ -952,7 +978,7 @@ question: "Your form is ready."
 subquestion: |2
   Thank you ${users[0].name}. Your form is ready to download and print.
   
-  Use the options below to view, download, or send your form. Select ‘Edit answers’ to make changes.
+  Use the options below to view, download, or send your form. Click ‘Edit answers’ to make changes.
   
   ${ action_button_html(url_action('review_gpcsfwithfields_1'), label=word('Edit answers'), color='info') }
   
@@ -973,11 +999,11 @@ objects:
 ---
 template: gpcsfwithfields_1_Post_interview_instructions.title
 content: |
-  Instructions
+  Next Step Instructions
 ---
 template: gpcsfwithfields_1_attachment.title
 content: |
-  GPCSF-with-fields (1)
+  Temporary Guardianship Form
 ---
 template: al_user_bundle.title
 content: |
@@ -1087,25 +1113,22 @@ attachment:
       - "guardianship_reason": ${ guardianship_reason }
       - "additional_data": ${ (Additional_data) }
         
-      - "users1_signature__2": ${ users[0].signature_if_final(i) }
-      - "users1_signature__1": ${ users[0].signature_if_final(i) }
-      - "users1_signature_1": ${ users[0].signature_if_final(i) }
-      - "users1_signature": ${ users[0].signature_if_final(i) }
-      - "other_parties1_signature": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+
       - "other_parties1_name_full": ${ users[1] if len(users) > 1 else '' }
       - "other_parties1_name_full_1": ${ users[1] if len(users) > 1 else '' }
       - "other_parties1_address_line_one": ${ users[1].address.line_one() if len(users) > 1 else '' }
       - "other_parties1_address_line_two": ${ users[1].address.line_two() if len(users) > 1 else '' }
-      - "other_parties1_signature_1": ${ users[1].signature_if_final(i) if len(users) > 1 else '' }
+
       - "other_parties1_phone_number": ${ users[1].phone_number if len(users) > 1 else '' }
       - "attorneys_name_full": ${ attorneys[0] }
       - "attorneys_address": ${ attorneys[0].address }
       - "attorneys_phone_number": ${ attorneys[0].phone_number }
       - "attorneys_bar_number": ${ attorneys_bar_number }
+
       - "day": ${ today().day }
       - "day1": ${ today().day }
       - "month": ${ today().month }
       - "month1": ${ today().month }
-      - "year": ${ today().year }
-      - "year1": ${ today().year }
+      - "year": ${ today().year % 100}
+      - "year1": ${ today().year % 100}
 ---
