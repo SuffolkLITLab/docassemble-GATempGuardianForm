@@ -10,19 +10,19 @@ metadata:
   short title: >-
     Georgia Temporary Guardianship Form
   description: |-
-    This form is used to request Temporary Letters of Guardianship for a minor. It outlines the necessary steps and requirements to ensure the child's welfare.
+    This form is used to request Temporary Letters of Guardianship for a minor. Use this form to ask the court to name you as a child's temporary guardian.
   can_I_use_this_form: |
-    You can use this form if you need to temporarily care for a minor and have the necessary legal relationship with them. Make sure to notify the parents of the minor as required.
+    You can use this form if you want to care for a child for a short time and meet the court's requirements. You may also need to give the child's parents notice.
   before_you_start: |
     ### Before you get started
-    - Gather all necessary information about the minor and their parents.
-    - Ensure you have the required documents, like the minor's birth certificate.
+    - Gather information about the child and both parents.
+    - Get any documents you may need, such as the child's birth certificate.
 
     ### When you are finished
-    - Submit the completed petition to the appropriate Probate Court.
-    - Ensure that all parties are notified as required by law.
+    - File your completed form with the Probate Court in your county.
+    - Make sure everyone who must be told about the case gets notice.
   when_you_are_finished: |
-    After submitting your petition, you will need to wait for the court's decision. Keep track of any hearings or additional requirements set by the court.
+    After you file your form, wait for the court to make a decision. Watch for letters from the court about hearings or anything else you need to do.
   efiling_enabled: False
   integrated_efiling: False
   integrated_email_filing: False
@@ -196,21 +196,22 @@ id: GPCSF with fields 1 intro
 question: "Petition For Temporary Letters of Guardianship of Minor in Georgia"
 subquestion: |2
   ## What is this form?
-  - Use this form to ask the court to name you as a child's temporary guardian. The child's parents must agree to the guardianship. If a parent does not agree, the court will not accept this petition.
+  - Use this form to ask the court to name you as a child's temporary guardian. The child's parents must agree to the guardianship. If a parent does not agree, the court will want to know why and may not accept this form. 
   
   ## Who should be filling out this form?
   - This form is for the person who wants to become the child's temporary guardian.
     
   ## Why would I use this form? 
-  - You would use this form to legally step in and care for a child when their parents are temporarily unable to care for them, but the parents are still willing to cooperate or retain their parental rights.
+  - You would use this form to legally step in and care for a child when their parents are temporarily unable to care for them, but the parents are still willing to cooperate or keep their parental rights.
   - This form could be used for medical decisions, school enrollment, if a parent becomes sick, or making everyday life decisions for the child. 
     
   ### To fill in the form:
   - Have information about the child and both parents ready.
-  - You may include copies of other documents, such as a custody order or a parent's death certificate. If you don't have copies of other documents, you can still file this form without them.
+  - You may include copies of other documents, like a custody order or a parent's death certificate. If you don't have copies of other documents, you can still file this form without them.
   
   ### When you are finished
-  - Review your answers, then print the form.
+  - Check your answers, then print at least three copies of the form.
+  - Find out who needs to sign the form and make sure they're in person with you at the court house.
   - Sign the form in front of the Clerk at the courthouse.
   - File the form with the Probate Court in your county.
   - Keep a copy for yourself. 
@@ -219,9 +220,9 @@ continue button field: gpcsfwithfields_1_intro
 id: parent_signed_consent
 question: Do You Have the Parent's Signed Consent?
 subquestion: |2
-  Before continuing, tell us whether you have the parent's signed consent for the temporary guardianship.
+  Before continuing, tell us if you have the parent's signed consent for the temporary guardianship.
   
-  If the parent is agreeing to the guardianship but has not signed yet, you can still continue with this form.
+  If the parent agrees to the guardianship but has not signed yet, you can still continue with this form.
 fields:
   - Do you have the parent's signed consent?: parent_signed_consent_yes
     datatype: yesnoradio
@@ -231,13 +232,13 @@ continue button field: parent_signed_consent
 id: parent_consent_scenario
 question: Why Don't You Have the Parent's Signed Consent?
 subquestion: |2-
-  There are a few reasons why the parent may not have signed a consent form yet. 
+  There are a few reasons why a parent might not have signed the consent form yet:
   
-  * The parent agrees but hasn't signed yet. If the parent is okay with the guardianship but just hasn't filled out the form, you can still turn it in. The court will send them an official letter giving them a deadline to sign.
+  * They agree, but have not signed yet: If the parent is okay with you being the guardian but just hasn't signed the paperwork, you can still turn your form in. The court will send them an official letter with a deadline to sign.
   
-  * The parent refuses to sign because they disagree. If a parent actively fights your petition and tells the court "No," the probate court is required by law to stop your case and say no to you. This specific form is only for situations where parents agree. If they fight you and the child is unsafe, you would have to go to a different court (Juvenile Court) to ask for help.
+  * They refuse to sign because they disagree: If a parent fights your request and tells the court "No," the probate court has to stop your case and say no. This form is only for when parents agree. If they disagree and the child is unsafe, you will need to go to Juvenile Court to ask for help instead.
   
-  * The parent is missing. If you cannot find the parent, you must tell the court. The court will try to look for them. They might send a police deputy to their last known house, or they will print a notice in the local newspaper for a few weeks. If the parent doesn't show up or answer the newspaper notice by the court's deadline, the judge can go ahead and grant you the guardianship.
+  * The parent is missing: If you cannot find the parent, you must tell the court. The court will try to look for them. They might send a police officer to their last known home or put a notice in the local newspaper for a few weeks. If the parent still does not show up or answer by the deadline, the judge can go ahead and give you the guardianship.
 fields:
   - What is happening with the parent?: parent_consent_scenario
     datatype: radio
@@ -378,7 +379,7 @@ question: "Minor selection form "
 subquestion: |2
   Because the child is 14 or older, they are expected to fill out a "Minor Selection Form". This form is the teenager’s official way to tell the judge, "This is the adult I want to live with and take care of me."
   
-  If they dont fill out the form, the court will want to know why, so write that information into the "Other Information" section later in this form. 
+  If they don't fill out the form, the court will want to know why, so write that information into the "Other Information" section later in this form. 
 continue button field: minor_selection_form_notice
 ---
 id: user_relationship
@@ -602,11 +603,16 @@ fields:
 continue button field: guardianship_details
 subquestion: |2-
   For example, this form could be used for:
+  
   * Medical decisions
+  
   * Enrolling a child in school
+  
   * A parent is too sick to make decisions for the child
+  
   * The parent needs help making decision for the child for some other reason
-
+  
+    
 ---
 id: additional_data
 question: |2
@@ -616,7 +622,7 @@ subquestion: |2-
   
   - Explain any missing information: If you left a part of the form blank for any reason, you can explain why here. 
   
-  - Give other details about the parent: For example, if a parent is in prison, living in a shelter, or deployed overseas, you can use this section to let the court know that. 
+  - Give other details about the parent: For example, if a parent is in prison, living in a shelter, or deployed overseas, you can use this section to let the court know that. If the parent did not sign a consent form, use this space to say why.
   
   - Sometimes, the judge needs to appoint a special, independent lawyer to speak up for a child or a parent. This is called a Guardian ad Litem. Use this section to let the Judge know if anyone needs that extra help.
   
