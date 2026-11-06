@@ -2,7 +2,7 @@
 include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALAnyState:any_state.yml
-  - docassemble.MassAccess:massaccess.yml
+  - docassemble.LITLabTheme:main.yml
 ---
 metadata:
   title: >-
@@ -31,27 +31,27 @@ metadata:
   landing_page_url: >-
     https://courtformsonline.org/
   maturity: production
-  estimated_completion_minutes: ""
-  estimated_completion_delta: ""
+  estimated_completion_minutes: "20"
+  estimated_completion_delta: "5"
   LIST_topics:
-    - "CO-00-00-00-00"
+    - "ES-03-03-00-00"
   tags:
-    - "CO-00-00-00-00"
+    - "ES-03-03-00-00"
   authors:
     - Court Forms Online
-  original_form: []
+  original_form: https://fultonprobatega.org/DocumentCenter/View/155/GPCSF-28-Petition-for-Temporary-Letters-of-Guardianship-of-Minor-PDF?bidId=
   original_form_published_on: ""
   allowed_courts: []
-  typical_role: "plaintiff"
+  typical_role: "petitioner"
   al_weaver_version: "2.3.1"
   generated_on: "2026-09-18"
   languages:
     - en
-  jurisdiction: "NAM-US-US+MA"
+  jurisdiction: "NAM-US-US+GA"
   review_date: 2026-09-18
   form_titles:
     - GPCSF-with-fields (1)
-  form_numbers: []
+  form_numbers: GPCSF 28
   update_notes: ""
 ---
 code: |
@@ -63,7 +63,7 @@ code: |
   AL_DEFAULT_STATE = "GA"
 ---
 code: |
-  github_repo_name = 'docassemble-Gpcsfwithfields1'
+  github_repo_name = 'docassemble-GATempGuardianForm'
 ---
 template: interview_short_title
 content: |2
@@ -85,8 +85,8 @@ code: |
   al_next_steps_help_organization = 'Georgia Probate Court'
   al_next_steps_help_url = 'https://www.gaprobate.gov'
   al_next_steps_generate_qr_code = False
-  al_next_steps_what_happens_next = "After filling out this form, print it out and get it signed in front of a notary. Take your signed form to the court to file. "
-  al_next_steps_what_can_decision_maker_do = "The Court can approve or deny your request for temporary guardianship. "
+  al_next_steps_what_happens_next = "After filling out this form, print it out and get it signed in front of a notary or the clerk at the court house. Take your signed form to the court to file. "
+  al_next_steps_what_can_decision_maker_do = "The Court can approve or deny your request for temporary guardianship."
   al_next_steps_what_happens_if_i_win = "If your form is approved, you will be named as the temporary guardian of the minor. This allows you to make decisions regarding their care."
   
 ---
@@ -100,7 +100,7 @@ objects:
 ---
 sections:
   - petitioners: Petitioners 
-  - parties: Parties (Child, Parents, Attorneys)
+  - parties: Parties (Child, Parents, Lawyers)
   - case_details: Case & Guardianship Details
   - review_gpcsfwithfields_1: Review your answers
 ---
@@ -114,10 +114,7 @@ code: |
   if not parent_signed_consent_yes:
     parent_consent_scenario
     if parent_consent_scenario == 'scenario_2':
-      message(
-        "You cannot continue with this form.",
-        "This form is only for situations where the parent agrees to the guardianship. If a parent actively disagrees and objects to the petition, the Probate Court process described here is not appropriate. If the child is unsafe, you may need to seek help through Juvenile Court."
-      )
+      exit_guardianship
   nav.set_section('petitioners')
   i  = 0
   users.appendObject()
@@ -205,24 +202,24 @@ subquestion: |2
   - You would use this form to legally step in and care for a child when their parents are temporarily unable to care for them, but the parents are still willing to cooperate or keep their parental rights.
   - This form could be used for medical decisions, school enrollment, if a parent becomes sick, or making everyday life decisions for the child. 
     
-  ### To fill in the form:
+  ## To fill in the form:
   - Have information about the child and both parents ready.
+  - Make sure you have a copy of the child's birth certificate. If you don't, you might risk the court rejecting the form or taking longer to process your request. 
   - You may include copies of other documents, like a custody order or a parent's death certificate. If you don't have copies of other documents, you can still file this form without them.
   
-  ### When you are finished
+  ## When you are finished:
   - Check your answers, then print at least three copies of the form.
-  - Find out who needs to sign the form and make sure they're in person with you at the court house.
-  - Sign the form in front of the Clerk at the courthouse.
-  - File the form with the Probate Court in your county.
+  - You can sign the papers ahead of time in front of a Notary Public (a person at a bank or store who officially stamps legal papers). Or, you can bring everyone to the court house and sign them in front of a court clerk. No matter what, you cannot sign the papers alone at home —an official person must watch you write your name.
+  - File the signed form with the Probate Court in your county.
   - Keep a copy for yourself. 
 continue button field: gpcsfwithfields_1_intro
 ---
 id: parent_signed_consent
 question: Do You Have the Parent's Signed Consent?
-subquestion: |2
+subquestion: |2-
   Before continuing, tell us if you have the parent's signed consent for the temporary guardianship.
   
-  If the parent agrees to the guardianship but has not signed yet, you can still continue with this form.
+  If the parent agrees to the guardianship but has not signed yet  or if they are unable to be reached for some reason, you can still continue with this form.
 fields:
   - Do you have the parent's signed consent?: parent_signed_consent_yes
     datatype: yesnoradio
@@ -234,20 +231,34 @@ question: Why Don't You Have the Parent's Signed Consent?
 subquestion: |2-
   There are a few reasons why a parent might not have signed the consent form yet:
   
-  * They agree, but have not signed yet: If the parent is okay with you being the guardian but just hasn't signed the paperwork, you can still turn your form in. The court will send them an official letter with a deadline to sign.
-  
-  * They refuse to sign because they disagree: If a parent fights your request and tells the court "No," the probate court has to stop your case and say no. This form is only for when parents agree. If they disagree and the child is unsafe, you will need to go to Juvenile Court to ask for help instead.
-  
-  * The parent is missing: If you cannot find the parent, you must tell the court. The court will try to look for them. They might send a police officer to their last known home or put a notice in the local newspaper for a few weeks. If the parent still does not show up or answer by the deadline, the judge can go ahead and give you the guardianship.
+  * They agree, but have not signed yet.
+  * They refuse to sign because they do not want you to become guardian. 
+  * The parent is missing, in prison, or out of reach.
+  * If you choose "other circumstances", make sure to write what those circumstances are later on in this form.
 fields:
   - What is happening with the parent?: parent_consent_scenario
     datatype: radio
     choices:
-      - Parent agrees but has not signed yet: scenario_1
-      - Parent refuses to sign because they disagree: scenario_2
-      - Parent is missing and cannot be found: scenario_3
-    required: True
+      - {"Parent agrees but has not signed yet":"scenario_1"}
+      - {"Parent refuses to sign because they disagree":"scenario_2"}
+      - {"Parent is missing or cannot be found":"scenario_3"}
+      - {"Other Circumstances":"scenario_4"}
 continue button field: parent_consent_scenario
+---
+id: exit guardianship
+event: exit_guardianship
+question: This is not the right form for you.
+subquestion: |2
+  If a parent who has full legal rights -- called a natural guardian -- says no to the temporary guardian request, the judge will throw out the request right away without having a court hearing.
+  
+  But if a parent who doesn't have those full legal rights says no, the court will set up a meeting or hearing to talk about it. If that is the case, start the form again and make sure to choose "other circumstances". Write the information in the "Other information" section later on the form. 
+  
+  If the child is unsafe, you may need to seek help through Juvenile Court.
+  
+  * To learn more, visit the Georgia courts web page on [minor guardianships](https://www.fultonprobatega.org/208/Minor-Guardianship-Conservatorship).
+buttons:
+  - Exit: exit
+    url: https://www.fultonprobatega.org/208/Minor-Guardianship-Conservatorship
 ---
 id: user_information
 question: What is your name?
@@ -295,6 +306,7 @@ fields:
   - Is there another temporary guardian?: has_second_guardian
     datatype: yesnoradio
 continue button field: second_guardian_yes_no
+subquestion: "This could be a spouse, partner, or another person who will help you make decisions for the child."
 ---
 id: second_guardian_information
 sets:
@@ -376,10 +388,12 @@ code: |
 ---
 id: minor_selection_form_notice
 question: "Minor selection form "
-subquestion: |2
+subquestion: |2-
   Because the child is 14 or older, they are expected to fill out a "Minor Selection Form". This form is the teenager’s official way to tell the judge, "This is the adult I want to live with and take care of me."
   
   If they don't fill out the form, the court will want to know why, so write that information into the "Other Information" section later in this form. 
+  
+  If you need to download and print the minor selection form, you can do that [here](https://fultonprobatega.org/DocumentCenter/View/155/GPCSF-28-Petition-for-Temporary-Letters-of-Guardianship-of-Minor-PDF?bidId=).
 continue button field: minor_selection_form_notice
 ---
 id: user_relationship
@@ -397,6 +411,13 @@ continue button field: mother_information
 sets:
   - "mothers[i].name.first"
   - "mothers[i].name.last"
+---
+id: mother_deceased
+question: "${ mothers[i] }'s Status"
+fields:
+  - "Has ${ mothers[i] } died?": mothers1_deceased_yes
+    datatype: yesnoradio
+continue button field: mother_deceased
 ---
 id: mother_address
 sets:
@@ -434,13 +455,6 @@ fields:
     required: False
 continue button field: mother_address
 ---
-id: mother_deceased
-question: "${ mothers[i] }'s Status"
-fields:
-  - "Has ${ mothers[i] } died?": mothers1_deceased_yes
-    datatype: yesnoradio
-continue button field: mother_deceased
----
 id: mother_consent_custody
 question: Mother's Consent and Custody
 fields:
@@ -453,26 +467,27 @@ fields:
     field: mothers1_rights_terminated_yes
     datatype: yesnoradio
     required: False
+    help: "Ending parental rights means a court permanently cuts the legal relationship between a parent and child, taking away all rights to see or make decisions for the child so they can have a safe and stable home."
 continue button field: mother_consent_custody
 ---
 id: mother_legal_custody
 question: "${mothers[i]}'s Legal Custody"
 fields:
-  - "Has a court order taken away ${ mothers[i] }'s custody?": mother_lost_custody
+  - label: "Has a court order taken away ${ mothers[i] }'s custody?"
+    field: mother_lost_custody
     datatype: yesnoradio
+    help: "Custody is the right of a parent to make major decisions about a child's life, like schooling and healthcare."
   - label: "Does a court order give ${ mothers[i] } joint legal custody?"
     field: mother_joint_custody
     datatype: yesnoradio
-    show if: 
-      variable: "mother_lost_custody"
-      is: False
+    show if: {"is":false,"variable":"mother_lost_custody"}
+    help: "Joint custody is an arrangement where both parents share the responsibility of making big decisions or splitting the child's living time."
 
   - label: "Does a court order give ${ mothers[i] } sole legal custody?"
     field: mother_sole_custody
     datatype: yesnoradio
-    show if: 
-      variable: "mother_lost_custody"
-      is: False
+    show if: {"is":false,"variable":"mother_lost_custody"}
+    help: "Sole custody is an arrangement where only one parent has the ability to make big decisions or serve as the child's primary home."
 continue button field: mother_legal_custody
 ---
 id: mother_marital_status
@@ -512,6 +527,13 @@ sets:
   - "fathers[i].name.middle"
   - "fathers[i].name.suffix"
 ---
+id: father_deceased
+question: "${ fathers[i] }'s Status"
+fields:
+  - "Has ${ fathers[i] } died?": father_deceased_yes
+    datatype: yesnoradio
+continue button field: father_deceased
+---
 id: father_address
 sets:
   - "fathers[i].address.address"
@@ -522,7 +544,7 @@ sets:
   - "fathers[i].address.country"
 question: |
   What is ${ fathers[i].possessive('address') }?
-subquestion: "f you do not know the father's address, check the box below. You can leave the address fields blank."
+subquestion: "If you do not know the father's address, check the box below. You can leave the address fields blank."
 fields:
   - label: Street address
     field: "fathers[i].address.address"
@@ -547,13 +569,6 @@ fields:
     required: False
 continue button field: father_address
 ---
-id: father_deceased
-question: "${ fathers[i] }'s Status"
-fields:
-  - "Has ${ fathers[i] } died?": father_deceased_yes
-    datatype: yesnoradio
-continue button field: father_deceased
----
 id: father_consent_custody
 question: "${ fathers[i] }'s Consent and Custody"
 fields:
@@ -566,6 +581,7 @@ fields:
     field: fathers_rights_terminated_yes
     datatype: yesnoradio
     required: False
+    help: "Ending parental rights means a court permanently cuts the legal relationship between a parent and child, taking away all rights to see or make decisions for the child so they can have a safe and stable home."
 continue button field: father_consent_custody
 ---
 id: father_legal_custody
@@ -575,21 +591,20 @@ fields:
     field: father_lost_custody
     datatype: yesnoradio
     required: False
+    help: "Custody is the right of a parent to make major decisions about a child's life, like schooling and healthcare."
   - label: "Does a court order give ${ fathers[i] }' joint legal custody?"
     field: father_joint_custody
     datatype: yesnoradio
     required: False
-    show if: 
-      variable: "father_lost_custody"
-      is: False
+    show if: {"is":false,"variable":"father_lost_custody"}
+    help: "Joint custody is an arrangement where both parents share the responsibility of making big decisions or splitting the child's living time."
   
   - label: "Does a court order give ${ fathers[i] } sole legal custody?"
     field: father_sole_custody
     datatype: yesnoradio
     required: False
-    show if: 
-      variable: "father_lost_custody"
-      is: False
+    show if: {"is":false,"variable":"father_lost_custody"}
+    help: "Sole custody is an arrangement where only one parent has the ability to make big decisions or serve as the child's primary home."
 
 continue button field: father_legal_custody
 ---
@@ -605,11 +620,8 @@ subquestion: |2-
   For example, this form could be used for:
   
   * Medical decisions
-  
   * Enrolling a child in school
-  
   * A parent is too sick to make decisions for the child
-  
   * The parent needs help making decision for the child for some other reason
   
     
@@ -620,13 +632,11 @@ question: |2
 subquestion: |2-
   **You can use this section to:**
   
-  - Explain any missing information: If you left a part of the form blank for any reason, you can explain why here. 
-  
-  - Give other details about the parent: For example, if a parent is in prison, living in a shelter, or deployed overseas, you can use this section to let the court know that. If the parent did not sign a consent form, use this space to say why.
-  
+  - Explain any missing information.
+  - Give other details about the parent (like if a parent is in prison, living in a shelter, or deployed overseas)
+  - If the parent did not sign a consent form, use this space to say why.
   - Sometimes, the judge needs to appoint a special, independent lawyer to speak up for a child or a parent. This is called a Guardian ad Litem. Use this section to let the Judge know if anyone needs that extra help.
-  
-  - If the child is over 14 and did not fill out a "Minor Selection Form", use this spot to tell the judge why.
+  - If the child is 14 or older and did not fill out a "Minor Selection Form", use this spot to tell the judge why.
 fields:
   - label: Other information (optional)
     field: Additional_data
@@ -698,13 +708,17 @@ fields:
     field: trial_court_county
     required: False
 continue button field: case_information
+subquestion: |2-
+  If you live in Georgia and are filing this form in the county where you live, write that county below. 
+  
+  If you live in another state, you can still ask to be a temporary guardian in Georgia. You have to file the paperwork in the Georgia county where the child is right now, while you are taking care of them.
 ---
 # Preview and review are kept separate from the custom interview questions.
 id: preview_gpcsfwithfields_1
 question: |
   Preview your form before you sign it
 subquestion: |2-
-  Review your form before you sign it. 
+  Read over your form before you finish it.
   
   ${ al_court_bundle.as_pdf(key='preview') }
   
@@ -982,7 +996,7 @@ id: download_gpcsfwithfields_1
 event: gpcsfwithfields_1_download
 question: "Your form is ready."
 subquestion: |2
-  Thank you ${users[0].name}. Your form is ready to download and print.
+  Thank you ${users[0].name}. Your form is ready to download, print, and sign. 
   
   Use the options below to view, download, or send your form. Click ‘Edit answers’ to make changes.
   
@@ -995,8 +1009,16 @@ progress: 100
 ---
 # ALDocument objects specify the metadata for each template
 objects:
-  - gpcsfwithfields_1_Post_interview_instructions: ALDocument.using(filename="gpcsfwithfields_1_next_steps.docx", enabled=al_next_steps_enabled, has_addendum=False)
-  - gpcsfwithfields_1_attachment: ALDocument.using(filename="gpcsfwithfields_1", enabled=True, has_addendum=False)
+  - gpcsfwithfields_1_Post_interview_instructions: ALDocument.using(
+        filename="gpcsfwithfields_1_next_steps.docx",
+        enabled=al_next_steps_enabled,
+        has_addendum=False
+      )
+  - gpcsfwithfields_1_attachment: ALDocument.using(
+        filename="gpcsfwithfields_1",
+        enabled=True,
+        has_addendum=False
+      )
 ---
 # Bundles group the ALDocuments into separate downloads, such as for court and for the user
 objects:
