@@ -144,8 +144,8 @@ code: |
     mother_consent_custody
     mother_legal_custody
     if mother_lost_custody:
-      mother_sole_custody = True
-      mother_joint_custody = True
+      mother_sole_custody = False
+      mother_joint_custody = False
   mother_marital_status
   if mother_other_married_yes:
     mother_spouse_information
@@ -157,8 +157,8 @@ code: |
     father_consent_custody
     father_legal_custody
     if father_lost_custody:
-      father_sole_custody = True
-      father_joint_custody = True
+      father_sole_custody = False
+      father_joint_custody = False
   set_progress(50)
   nav.set_section('case_details')
   guardianship_details
@@ -1155,8 +1155,8 @@ attachment:
 
       - "day": ${ today().day }
       - "day1": ${ today().day }
-      - "month": ${ today().month }
-      - "month1": ${ today().month }
+      - "month": ${ today().strftime("%B") }
+      - "month1": ${ today().strftime("%B") }
       - "year": ${ today().year % 100}
       - "year1": ${ today().year % 100}
 ---
