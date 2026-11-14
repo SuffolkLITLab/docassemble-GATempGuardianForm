@@ -147,7 +147,7 @@ code: |
       mother_sole_custody = False
       mother_joint_custody = False
   mother_marital_status
-  if mother_other_married_yes:
+  if not mother_father_married_yes and mother_other_married_yes:
     mother_spouse_information
   fathers.appendObject()
   father_information
@@ -823,7 +823,7 @@ review:
       Spouse's name: ${ showifdef('mothers1_spouse_name_full') }
      
       Spouse's address: ${ showifdef('mothers1_spouse_address') }   
-    condition: mother_other_married_yes
+    condition: mother_has_other_spouse
   - Edit: fathers.revisit
     button: |
       **Father's Information**
@@ -1110,8 +1110,8 @@ attachment:
       - "mother_father_married_yes": ${ mother_father_married_yes }
       - "mother_father_married_no": ${ not mother_father_married_yes }
 
-      - "mother_other_married_yes": ${ mother_other_married_yes }
-      - "mother_other_married_no": ${ not mother_other_married_yes }
+      - "mother_other_married_yes": ${ not mother_father_married_yes and mother_other_married_yes }
+      - "mother_other_married_no": ${ mother_father_married_yes or not mother_other_married_yes }
       - "mothers1_spouse_name_full": ${ mothers1_spouse_name_full }
       - "mothers1_spouse_address": ${ mothers1_spouse_address }
         
@@ -1160,3 +1160,5 @@ attachment:
       - "year": ${ today().year % 100}
       - "year1": ${ today().year % 100}
 ---
+code: |
+  mother_has_other_spouse = not mother_father_married_yes and mother_other_married_yes
