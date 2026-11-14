@@ -117,7 +117,8 @@ code: |
       exit_guardianship
   nav.set_section('petitioners')
   i  = 0
-  users.appendObject()
+  if users.number_gathered() < 1:
+    users.appendObject()
   user_information
   user_address
   users[0].address.geocode()
@@ -125,18 +126,21 @@ code: |
   nav.set_section('parties')
   second_guardian_yes_no
   if has_second_guardian:
-    users.appendObject()
+    if users.number_gathered() < 2:
+      users.appendObject()
     second_guardian_information
     second_guardian_address
     second_guardian_phone
-  children.appendObject()
+  if children.number_gathered() < 1:
+    children.appendObject()
   child_name
   child_address
   child_birthdate
   if minor_age_14_yes:
     minor_selection_form_notice
   user_relationship
-  mothers.appendObject()
+  if mothers.number_gathered() < 1:
+    mothers.appendObject()
   mother_information
   mother_deceased
   if not mothers1_deceased_yes:
@@ -149,7 +153,8 @@ code: |
   mother_marital_status
   if not mother_father_married_yes and mother_other_married_yes:
     mother_spouse_information
-  fathers.appendObject()
+  if fathers.number_gathered() < 1:
+    fathers.appendObject()
   father_information
   father_deceased
   if not father_deceased_yes:
@@ -165,7 +170,8 @@ code: |
   additional_data
   attorney_yes_no
   if has_attorney:
-    attorneys.appendObject()
+    if attorneys.number_gathered() < 1:
+      attorneys.appendObject()
     attorney_information
     attorney_phone
     attorney_address
@@ -887,7 +893,9 @@ question: |
 subquestion: |
   ${ users.table }
 
+  % if users.number_gathered() < 2:
   ${ users.add_action() }
+  % endif
 ---
 table: users.table
 rows: users
@@ -912,7 +920,9 @@ question: |
 subquestion: |
   ${ children.table }
 
+  % if children.number_gathered() < 1:
   ${ children.add_action() }
+  % endif
 ---
 table: children.table
 rows: children
@@ -936,7 +946,9 @@ question: |
 subquestion: |
   ${ mothers.table }
 
+  % if mothers.number_gathered() < 1:
   ${ mothers.add_action() }
+  % endif
 ---
 table: mothers.table
 rows: mothers
@@ -957,7 +969,9 @@ question: |
 subquestion: |
   ${ fathers.table }
 
+  % if fathers.number_gathered() < 1:
   ${ fathers.add_action() }
+  % endif
 ---
 table: fathers.table
 rows: fathers
@@ -978,7 +992,9 @@ question: |
 subquestion: |
   ${ attorneys.table }
 
+  % if attorneys.number_gathered() < 1:
   ${ attorneys.add_action() }
+  % endif
 ---
 table: attorneys.table
 rows: attorneys
