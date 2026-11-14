@@ -887,7 +887,9 @@ question: |
 subquestion: |
   ${ users.table }
 
+  % if users.number_gathered() < 2:
   ${ users.add_action() }
+  % endif
 ---
 table: users.table
 rows: users
@@ -912,7 +914,9 @@ question: |
 subquestion: |
   ${ children.table }
 
+  % if children.number_gathered() < 1:
   ${ children.add_action() }
+  % endif
 ---
 table: children.table
 rows: children
@@ -936,7 +940,9 @@ question: |
 subquestion: |
   ${ mothers.table }
 
+  % if mothers.number_gathered() < 1:
   ${ mothers.add_action() }
+  % endif
 ---
 table: mothers.table
 rows: mothers
@@ -957,7 +963,9 @@ question: |
 subquestion: |
   ${ fathers.table }
 
+  % if fathers.number_gathered() < 1:
   ${ fathers.add_action() }
+  % endif
 ---
 table: fathers.table
 rows: fathers
@@ -978,7 +986,9 @@ question: |
 subquestion: |
   ${ attorneys.table }
 
+  % if attorneys.number_gathered() < 1:
   ${ attorneys.add_action() }
+  % endif
 ---
 table: attorneys.table
 rows: attorneys
