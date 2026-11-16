@@ -5,6 +5,7 @@ include:
   - docassemble.LITLabTheme:main.yml
 ---
 metadata:
+  asklit_id: "5207f83c2cfa4105a3fcbc3ce4d53812"
   title: >-
     Georgia Temporary Guardianship Form
   short title: >-
