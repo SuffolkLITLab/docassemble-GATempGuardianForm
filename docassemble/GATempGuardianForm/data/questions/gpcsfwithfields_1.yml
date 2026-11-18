@@ -1,4 +1,11 @@
 ---
+translations:
+  - FamilySpanish09_es.xlsx
+---
+include:
+  - family_spanish_words.yml
+---
+---
 include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALAnyState:any_state.yml
@@ -46,8 +53,7 @@ metadata:
   typical_role: "petitioner"
   al_weaver_version: "2.3.1"
   generated_on: "2026-09-18"
-  languages:
-    - en
+  languages: [en, es]
   jurisdiction: "NAM-US-US+GA"
   review_date: 2026-09-18
   form_titles:
@@ -76,19 +82,11 @@ code: |
 id: alweaver assemblyline settings
 
 code: |
-  # These exact-name variables drive the reusable next-steps DOCX shell and
-  # are editable in Weaver's AssemblyLine settings panel.
+  # Next-steps prose is maintained directly in the bilingual DOCX template.
   al_next_steps_enabled = True
-  al_next_steps_title = 'Georgia Temporary Guardianship'
-  al_next_steps_intro_prompt = 'File a Petition for Temporary Guardianship'
-  al_next_steps_document_title = 'Petition'
-  al_next_steps_document_purpose = 'Application'
   al_next_steps_help_organization = 'Georgia Probate Court'
   al_next_steps_help_url = 'https://www.gaprobate.gov'
   al_next_steps_generate_qr_code = False
-  al_next_steps_what_happens_next = "After filling out this form, print it out and get it signed in front of a notary or the clerk at the court house. Take your signed form to the court to file. "
-  al_next_steps_what_can_decision_maker_do = "The Court can approve or deny your request for temporary guardianship."
-  al_next_steps_what_happens_if_i_win = "If your form is approved, you will be named as the temporary guardian of the minor. This allows you to make decisions regarding their care."
   
 ---
 
@@ -912,6 +910,8 @@ edit:
   - address.address
   - phone_number
 confirm: True
+edit header: |
+  ${ word("Actions") }
 ---
 
 id: edit_children
@@ -939,6 +939,8 @@ edit:
   - birthdate
   - address.address
 confirm: True
+edit header: |
+  ${ word("Actions") }
 ---
 id: edit_mothers
 continue button field: mothers.revisit
@@ -962,6 +964,8 @@ edit:
   - name.first
   - address.address
 confirm: True
+edit header: |
+  ${ word("Actions") }
 ---
 id: edit_fathers
 continue button field: fathers.revisit
@@ -985,6 +989,8 @@ edit:
   - name.first
   - address.address
 confirm: True
+edit header: |
+  ${ word("Actions") }
 ---
 id: edit_attorneys
 continue button field: attorneys.revisit
@@ -1008,6 +1014,8 @@ edit:
   - name.first
   - phone_number
 confirm: True
+edit header: |
+  ${ word("Actions") }
 ---
 id: download_gpcsfwithfields_1
 event: gpcsfwithfields_1_download
@@ -1179,3 +1187,11 @@ attachment:
 ---
 code: |
   mother_has_other_spouse = not mother_father_married_yes and mother_other_married_yes
+
+---
+language: es
+sections:
+- petitioners: Peticionarios
+- parties: Personas involucradas (menor, padres y abogados)
+- case_details: Detalles del caso y de la tutela
+- review_gpcsfwithfields_1: Revise sus respuestas
